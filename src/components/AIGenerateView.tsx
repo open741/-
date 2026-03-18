@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Sparkles, Upload, Image as ImageIcon, Wand2, Loader2, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Upload, Wand2, Loader2, CheckCircle2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { addAITask } from '../lib/store';
 
 const STYLES = [
   { id: 'cartoon', label: '卡通', icon: '🎨' },
@@ -18,6 +19,13 @@ const SIZES = [
   { id: '9:16', label: '9:16', aspect: 'aspect-[9/16]' },
 ];
 
+const STYLE_LABELS: Record<string, string> = {
+  cartoon: '卡通',
+  realistic: '写实',
+  stick: '简笔画',
+  '3d': '3D',
+};
+
 export default function AIGenerateView() {
   const [taskName, setTaskName] = useState('');
   const [prompt, setPrompt] = useState('');
@@ -30,7 +38,6 @@ export default function AIGenerateView() {
   const handleOptimize = async () => {
     if (!prompt) return;
     setIsOptimizing(true);
-    // Simulate LLM optimization
     setTimeout(() => {
       setPrompt(`一个红色的、饱满的、带有绿叶的写实苹果，白色背景，高清晰度，适合儿童认知`);
       setIsOptimizing(false);
@@ -39,7 +46,15 @@ export default function AIGenerateView() {
 
   const handleGenerate = () => {
     setIsGenerating(true);
-    // Simulate generation
+    
+    addAITask({
+      taskName,
+      prompt,
+      style: STYLE_LABELS[selectedStyle] || selectedStyle,
+      size: selectedSize,
+      creator: '胡晓涛',
+    });
+    
     setTimeout(() => {
       setIsGenerating(false);
       setPrompt('');
@@ -70,7 +85,6 @@ export default function AIGenerateView() {
       className="max-w-3xl mx-auto w-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col"
     >
       <div className="p-6 overflow-y-auto flex-1 space-y-8">
-        {/* Task Name Input */}
         <div className="space-y-3">
           <label className="text-sm font-semibold text-slate-700">任务名称</label>
           <input
@@ -82,7 +96,6 @@ export default function AIGenerateView() {
           />
         </div>
 
-        {/* Prompt Input */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <label className="text-sm font-semibold text-slate-700">画面描述</label>
@@ -103,7 +116,6 @@ export default function AIGenerateView() {
           />
         </div>
 
-        {/* Style Selection */}
         <div className="space-y-3">
           <label className="text-sm font-semibold text-slate-700">图像风格</label>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -129,7 +141,6 @@ export default function AIGenerateView() {
           </div>
         </div>
 
-        {/* Size Selection */}
         <div className="space-y-3">
           <label className="text-sm font-semibold text-slate-700">生成尺寸</label>
           <div className="flex flex-wrap gap-3">
