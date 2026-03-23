@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Sparkles, Upload, Wand2, Loader2, CheckCircle2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { addAITask } from '../lib/store';
+import { useStore } from '../lib/store';
 
 const STYLES = [
   { id: 'cartoon', label: '卡通', icon: '🎨' },
@@ -27,10 +27,13 @@ const STYLE_LABELS: Record<string, string> = {
 };
 
 export default function AIGenerateView() {
+  const addAITask = useStore(state => state.addAITask);
   const [taskName, setTaskName] = useState('');
   const [prompt, setPrompt] = useState('');
   const [selectedStyle, setSelectedStyle] = useState('cartoon');
   const [selectedSize, setSelectedSize] = useState('1:1');
+  const [selectedQuantity, setSelectedQuantity] = useState<1 | 2 | 4>(4);
+  const [isGroupImage, setIsGroupImage] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -52,6 +55,8 @@ export default function AIGenerateView() {
       prompt,
       style: STYLE_LABELS[selectedStyle] || selectedStyle,
       size: selectedSize,
+      quantity: selectedQuantity,
+      isGroupImage,
       creator: '胡晓涛',
     });
     
@@ -159,6 +164,51 @@ export default function AIGenerateView() {
                 {size.label}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-slate-700">生成数量</label>
+            <div className="flex gap-3">
+              {[1, 2, 4].map((qty) => (
+                <button
+                  key={qty}
+                  onClick={() => setSelectedQuantity(qty as 1 | 2 | 4)}
+                  className={cn(
+                    "flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all",
+                    selectedQuantity === qty
+                      ? "border-[#135c4a] bg-[#e8f3f0] text-[#135c4a]"
+                      : "border-slate-100 bg-white text-slate-600 hover:border-slate-200 hover:bg-slate-50"
+                  )}
+                >
+                  {qty} 张
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-slate-700">生成组图</label>
+            <div className="flex items-center h-[44px]">
+              <button
+                onClick={() => setIsGroupImage(!isGroupImage)}
+                className={cn(
+                  "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#135c4a] focus:ring-offset-2",
+                  isGroupImage ? "bg-[#135c4a]" : "bg-slate-200"
+                )}
+              >
+                <span
+                  className={cn(
+                    "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                    isGroupImage ? "translate-x-6" : "translate-x-1"
+                  )}
+                />
+              </button>
+              <span className="ml-3 text-sm font-medium text-slate-600">
+                {isGroupImage ? '开启' : '关闭'}
+              </span>
+            </div>
           </div>
         </div>
       </div>

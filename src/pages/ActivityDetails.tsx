@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { ArrowLeft, Printer, RefreshCw, XCircle, Star, ChevronDown, CheckCircle2, X, Wand2, Loader2, Upload } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { updateActivity, getActivities, Activity, DialogueLine, Card } from '../lib/store';
+import { useStore, Activity, DialogueLine, Card } from '../lib/store';
 
 export default function ActivityDetails() {
+  const updateActivity = useStore(state => state.updateActivity);
   const [activeTab, setActiveTab] = useState<'details' | 'dialogue'>('details');
 
   return (
@@ -319,6 +320,7 @@ const INITIAL_RAW_DIALOGUES = [
 ];
 
 function ActivityDialogueTab() {
+  const updateActivity = useStore(state => state.updateActivity);
   const [dialogueState, setDialogueState] = useState<'empty' | 'editing' | 'parsing' | 'parsed'>('empty');
   const [rawDialogues, setRawDialogues] = useState<{ speaker: 'teacher' | 'student', text: string }[]>([]);
   const [dialogues, setDialogues] = useState<any[]>([]);

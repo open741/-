@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Search, Upload, Wand2, Download, Trash2, Printer, CheckCircle2, CircleDashed, LayoutGrid, Image as ImageIcon, Type, Send, Archive, MoreHorizontal, Edit2, Check, X, Loader2, Clock, ChevronLeft, ChevronRight, AlertCircle, ChevronDown } from 'lucide-react';
 import { cn } from '../lib/utils';
 import AIGenerateView from '../components/AIGenerateView';
-import { getAITasks, getCards, subscribe, updateCard, deleteCards, deleteAITask, getCreators, getActivities, AITask, Card, Activity, DialogueWord } from '../lib/store';
+import { useStore, AITask, Card, Activity, DialogueWord } from '../lib/store';
 
 const menuItems = [
   { id: 'ai-generate', label: 'AI生成图卡', icon: Wand2 },
@@ -324,9 +324,19 @@ export default function GraphicLibrary() {
   const [filterCreator, setFilterCreator] = useState<string>('all');
   const [filterCardType, setFilterCardType] = useState<'all' | 'graphic' | 'word'>('all');
   const [filterPublishStatus, setFilterPublishStatus] = useState<'all' | 'published' | 'unpublished'>('all');
-  const [cards, setCards] = useState<Card[]>([]);
-  const [aiTasks, setAITasks] = useState<AITask[]>([]);
-  const [activities, setActivities] = useState<Activity[]>([]);
+  
+  const [taskSearchQuery, setTaskSearchQuery] = useState('');
+  const [taskFilterCreator, setTaskFilterCreator] = useState<string>('all');
+  const [taskFilterStatus, setTaskFilterStatus] = useState<'all' | 'completed' | 'generating' | 'failed'>('all');
+
+  const cards = useStore(state => state.cards);
+  const aiTasks = useStore(state => state.aiTasks);
+  const activities = useStore(state => state.activities);
+  const updateCard = useStore(state => state.updateCard);
+  const deleteCards = useStore(state => state.deleteCards);
+  const deleteAITask = useStore(state => state.deleteAITask);
+  const getCreators = useStore(state => state.getCreators);
+
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectedActivityIds, setSelectedActivityIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -338,29 +348,18 @@ export default function GraphicLibrary() {
   const [activityCurrentPage, setActivityCurrentPage] = useState(1);
 
   useEffect(() => {
-    setCards(getCards());
-    setAITasks(getAITasks());
-    setActivities(getActivities());
-    
-    const unsubscribe = subscribe(() => {
-      setCards(getCards());
-      setAITasks(getAITasks());
-      setActivities(getActivities());
-    });
-    
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null);
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   useEffect(() => {
-    setTaskCurrentPage(1);
     setCardCurrentPage(1);
   }, [activeTab, searchQuery, filterCreator, filterCardType, filterPublishStatus]);
+
+  useEffect(() => {
+    setTaskCurrentPage(1);
+  }, [activeTab, taskSearchQuery, taskFilterCreator, taskFilterStatus]);
 
   const creators = getCreators();
 
@@ -373,11 +372,18 @@ export default function GraphicLibrary() {
     return true;
   });
 
-  const totalTaskPages = Math.ceil(aiTasks.length / TASKS_PER_PAGE);
+  const filteredTasks = aiTasks.filter(task => {
+    if (taskSearchQuery && !task.taskName.includes(taskSearchQuery)) return false;
+    if (taskFilterCreator !== 'all' && task.creator !== taskFilterCreator) return false;
+    if (taskFilterStatus !== 'all' && task.status !== taskFilterStatus) return false;
+    return true;
+  });
+
+  const totalTaskPages = Math.ceil(filteredTasks.length / TASKS_PER_PAGE);
   const totalCardPages = Math.ceil(filteredCards.length / CARDS_PER_PAGE);
   const totalActivityPages = Math.ceil(activities.length / ACTIVITIES_PER_PAGE);
   
-  const paginatedTasks = aiTasks.slice(
+  const paginatedTasks = filteredTasks.slice(
     (taskCurrentPage - 1) * TASKS_PER_PAGE,
     taskCurrentPage * TASKS_PER_PAGE
   );
@@ -538,9 +544,10 @@ export default function GraphicLibrary() {
 
   const renderTaskImages = (task: AITask) => {
     if (task.status === 'generating') {
+      const quantity = task.quantity || 4;
       return (
         <>
-          {[0, 1, 2, 3].map((i) => (
+          {Array.from({ length: quantity }).map((_, i) => (
             <div 
               key={i}
               className="aspect-square rounded-xl bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center"
@@ -553,9 +560,10 @@ export default function GraphicLibrary() {
     }
     
     if (task.status === 'failed') {
+      const quantity = task.quantity || 4;
       return (
         <>
-          {[0, 1, 2, 3].map((i) => (
+          {Array.from({ length: quantity }).map((_, i) => (
             <div 
               key={i}
               className="aspect-square rounded-xl bg-red-50 border-2 border-dashed border-red-200 flex flex-col items-center justify-center gap-2"
@@ -747,6 +755,45 @@ export default function GraphicLibrary() {
           </div>
         )}
 
+        {activeTab === 'graphic' && (
+          <div className="bg-white px-8 py-3 border-b border-slate-100 flex items-center gap-4 sticky top-[73px] z-10">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="请输入任务名称"
+                value={taskSearchQuery}
+                onChange={(e) => setTaskSearchQuery(e.target.value)}
+                className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#135c4a] focus:border-transparent w-64 transition-shadow"
+              />
+            </div>
+            
+            <div className="h-6 w-px bg-slate-200 mx-2"></div>
+
+            <select
+              value={taskFilterCreator}
+              onChange={(e) => setTaskFilterCreator(e.target.value)}
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#135c4a] focus:border-transparent min-w-[140px] cursor-pointer hover:bg-slate-100 transition-colors text-slate-700"
+            >
+              <option value="all">所有创建人</option>
+              {creators.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+
+            <select
+              value={taskFilterStatus}
+              onChange={(e) => setTaskFilterStatus(e.target.value as any)}
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#135c4a] focus:border-transparent min-w-[140px] cursor-pointer hover:bg-slate-100 transition-colors text-slate-700"
+            >
+              <option value="all">全部状态</option>
+              <option value="completed">已完成</option>
+              <option value="generating">生成中</option>
+              <option value="failed">生成失败</option>
+            </select>
+          </div>
+        )}
+
         <div className="flex-1 p-8 pt-6 overflow-y-auto bg-white">
           {activeTab === 'ai-generate' ? (
             <AIGenerateView />
@@ -757,6 +804,12 @@ export default function GraphicLibrary() {
                   <ImageIcon className="w-16 h-16 mx-auto text-slate-300 mb-4" />
                   <p className="text-slate-500 text-lg">暂无AI生成任务</p>
                   <p className="text-slate-400 text-sm mt-2">请前往"AI生成图卡"创建新任务</p>
+                </div>
+              ) : filteredTasks.length === 0 ? (
+                <div className="text-center py-20">
+                  <Search className="w-16 h-16 mx-auto text-slate-300 mb-4" />
+                  <p className="text-slate-500 text-lg">没有找到匹配的任务</p>
+                  <p className="text-slate-400 text-sm mt-2">请尝试调整筛选条件</p>
                 </div>
               ) : (
                 paginatedTasks.map((task) => (
@@ -778,6 +831,17 @@ export default function GraphicLibrary() {
                             </span>
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200">
                               <span className="font-medium">尺寸:</span> {task.size}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200">
+                              <span className="font-medium">数量:</span> {task.quantity || 4}张
+                            </span>
+                            <span className={cn(
+                              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border",
+                              task.isGroupImage 
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                                : "bg-slate-50 text-slate-500 border-slate-200"
+                            )}>
+                              <span className="font-medium">组图:</span> {task.isGroupImage ? '已开启' : '未开启'}
                             </span>
                             <span className="inline-flex items-center gap-1.5">
                               <span className="font-medium">创建人:</span> 
