@@ -49,7 +49,7 @@ function Topbar() {
     <header className="h-16 bg-[#135c4a] flex items-center justify-end px-6 text-white shrink-0">
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-2 cursor-pointer hover:text-white/80 transition-colors">
-          <span className="text-sm font-medium">天府软件园-网络技术部</span>
+          <span className="text-sm font-medium">仁怀市特殊教育学校-仁怀特校</span>
           <ChevronDown className="w-4 h-4" />
         </div>
         <div className="flex items-center gap-3 cursor-pointer">
@@ -58,7 +58,7 @@ function Topbar() {
             alt="User avatar" 
             className="w-8 h-8 rounded-full bg-white/20"
           />
-          <span className="text-sm font-medium">胡晓涛</span>
+          <span className="text-sm font-medium">蒋永亮</span>
         </div>
       </div>
     </header>

@@ -57,7 +57,7 @@ export default function AIGenerateView() {
       size: selectedSize,
       quantity: selectedQuantity,
       isGroupImage,
-      creator: '胡晓涛',
+      creator: '蒋永亮',
     });
     
     setTimeout(() => {
@@ -169,17 +169,22 @@ export default function AIGenerateView() {
 
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-700">生成数量</label>
+            <label className={cn("text-sm font-semibold", isGroupImage ? "text-slate-400" : "text-slate-700")}>生成数量</label>
             <div className="flex gap-3">
               {[1, 2, 4].map((qty) => (
                 <button
                   key={qty}
+                  disabled={isGroupImage}
                   onClick={() => setSelectedQuantity(qty as 1 | 2 | 4)}
                   className={cn(
                     "flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all",
-                    selectedQuantity === qty
-                      ? "border-[#135c4a] bg-[#e8f3f0] text-[#135c4a]"
-                      : "border-slate-100 bg-white text-slate-600 hover:border-slate-200 hover:bg-slate-50"
+                    isGroupImage
+                      ? selectedQuantity === qty
+                        ? "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
+                        : "border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed"
+                      : selectedQuantity === qty
+                        ? "border-[#135c4a] bg-[#e8f3f0] text-[#135c4a]"
+                        : "border-slate-100 bg-white text-slate-600 hover:border-slate-200 hover:bg-slate-50"
                   )}
                 >
                   {qty} 张
