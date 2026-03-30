@@ -12,6 +12,8 @@ export interface AITask {
   size: string;
   quantity?: number;
   isGroupImage?: boolean;
+  chineseText?: string;
+  englishText?: string;
   creator: string;
   createdAt: Date;
   status: 'pending' | 'generating' | 'completed' | 'failed';

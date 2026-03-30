@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Printer, RefreshCw, XCircle, Star, ChevronDown, CheckCircle2, X, Wand2, Loader2, Upload } from 'lucide-react';
+import { ArrowLeft, Printer, RefreshCw, XCircle, Star, ChevronDown, CheckCircle2, X, Wand2, Loader2, Upload, Trash2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStore, Activity, DialogueLine, Card } from '../lib/store';
 
@@ -326,10 +326,14 @@ function ActivityDialogueTab() {
   const [dialogues, setDialogues] = useState<any[]>([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [hasGenerated, setHasGenerated] = useState(false);
+  const [generatingWords, setGeneratingWords] = useState<string[]>([]);
+  const [generateTarget, setGenerateTarget] = useState<{ type: 'sentence', dIdx: number } | { type: 'word', dIdx: number, wIdx: number } | null>(null);
   const [selectedStyle, setSelectedStyle] = useState('cartoon');
   const [selectedSize, setSelectedSize] = useState('1:1');
+  const [includeChinese, setIncludeChinese] = useState(false);
+  const [includeEnglish, setIncludeEnglish] = useState(false);
+  const [ageRange, setAgeRange] = useState('15~24月龄');
+  const [vocabLevel, setVocabLevel] = useState('初级');
 
   const STYLES = [
     { id: 'cartoon', label: '卡通', icon: '🎨' },
@@ -346,11 +350,23 @@ function ActivityDialogueTab() {
     { id: '9:16', label: '9:16', aspect: 'aspect-[9/16]' },
   ];
 
-  const shouldHaveImage = (word: any) => word.partOfSpeech !== 'other' || word.text === '你好' || word.text === '呀';
+  const shouldHaveImage = (word: any) => word.partOfSpeech !== 'other';
 
   const handleGenerateDialogue = () => {
     setDialogueState('editing');
     setRawDialogues(INITIAL_RAW_DIALOGUES.map(d => ({ ...d })));
+  };
+
+  const handleClearDialogues = () => {
+    setDialogueState('empty');
+    setRawDialogues([]);
+    setDialogues([]);
+  };
+
+  const handleDeleteDialoguePair = (pairIndex: number) => {
+    const newRaw = [...rawDialogues];
+    newRaw.splice(pairIndex * 2, 2);
+    setRawDialogues(newRaw);
   };
 
   const handleCompleteDialogue = () => {
@@ -394,47 +410,72 @@ function ActivityDialogueTab() {
     setRawDialogues(newRaw);
   };
 
-  const handleStartGenerate = () => {
-    setIsModalOpen(false);
-    setIsGenerating(true);
-    setHasGenerated(false);
+  const openGenerateModalForWord = (dIdx: number, wIdx: number) => {
+    setGenerateTarget({ type: 'word', dIdx, wIdx });
+    setIsModalOpen(true);
+  };
 
-    const initialDialogues = dialogues.map(dialogue => ({
-      ...dialogue,
-      words: dialogue.words.map(word => ({ ...word, img: '' }))
-    }));
-    setDialogues(initialDialogues);
+  const openGenerateModalForSentence = (dIdx: number) => {
+    setGenerateTarget({ type: 'sentence', dIdx });
+    setIsModalOpen(true);
+  };
+
+  const handleStartGenerate = () => {
+    if (!generateTarget) return;
+    
+    setIsModalOpen(false);
+
+    const wordsToGenerate: string[] = [];
+    if (generateTarget.type === 'word') {
+      wordsToGenerate.push(`${generateTarget.dIdx}-${generateTarget.wIdx}`);
+    } else {
+      dialogues[generateTarget.dIdx].words.forEach((word: any, wIdx: number) => {
+        if (shouldHaveImage(word) && !word.img) {
+          wordsToGenerate.push(`${generateTarget.dIdx}-${wIdx}`);
+        }
+      });
+    }
+
+    if (wordsToGenerate.length === 0) return;
+
+    setGeneratingWords(prev => [...prev, ...wordsToGenerate]);
 
     setTimeout(() => {
-      const updatedDialogues = initialDialogues.map(dialogue => ({
-        ...dialogue,
-        words: dialogue.words.map(word => {
-          if (shouldHaveImage(word)) {
-            return { ...word, img: `https://picsum.photos/seed/${word.text}-${Date.now()}/100/100` };
-          }
-          return word;
-        })
-      }));
+      const updatedDialogues = [...dialogues];
+      
+      wordsToGenerate.forEach(key => {
+        const [dIdxStr, wIdxStr] = key.split('-');
+        const dIdx = parseInt(dIdxStr);
+        const wIdx = parseInt(wIdxStr);
+        const word = updatedDialogues[dIdx].words[wIdx];
+        
+        updatedDialogues[dIdx].words[wIdx] = {
+          ...word,
+          img: `https://picsum.photos/seed/${word.text}-${Date.now()}/100/100`
+        };
+      });
       
       setDialogues(updatedDialogues);
       
       const updatedWordCards: Card[] = [];
       updatedDialogues.forEach((dialogue, dIdx) => {
         dialogue.words.forEach((word: any, wIdx) => {
-          updatedWordCards.push({
-            id: `wc-${CURRENT_ACTIVITY_ID}-${dIdx}-${wIdx}`,
-            type: 'word',
-            title: word.text,
-            imageUrl: word.img || '',
-            tags: [POS_LABELS[word.partOfSpeech]],
-            publishStatus: 'published',
-            sourceType: 'activity',
-            sourceActivity: '3个项目',
-            activityId: CURRENT_ACTIVITY_ID,
-            posColor: POS_COLORS[word.partOfSpeech],
-            creator: '胡晓涛',
-            partOfSpeech: POS_LABELS[word.partOfSpeech]
-          });
+          if (word.img) {
+            updatedWordCards.push({
+              id: `wc-${CURRENT_ACTIVITY_ID}-${dIdx}-${wIdx}`,
+              type: 'word',
+              title: word.text,
+              imageUrl: word.img,
+              tags: [POS_LABELS[word.partOfSpeech]],
+              publishStatus: 'published',
+              sourceType: 'activity',
+              sourceActivity: '3个项目',
+              activityId: CURRENT_ACTIVITY_ID,
+              posColor: POS_COLORS[word.partOfSpeech],
+              creator: '胡晓涛',
+              partOfSpeech: POS_LABELS[word.partOfSpeech]
+            });
+          }
         });
       });
       
@@ -443,8 +484,7 @@ function ActivityDialogueTab() {
         wordCards: updatedWordCards
       });
       
-      setIsGenerating(false);
-      setHasGenerated(true);
+      setGeneratingWords(prev => prev.filter(w => !wordsToGenerate.includes(w)));
     }, 2500);
   };
 
@@ -452,13 +492,55 @@ function ActivityDialogueTab() {
     <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 space-y-8 relative">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-bold text-slate-800">活动对话</h3>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-700">月龄段:</label>
+            <div className="relative">
+              <select
+                value={ageRange}
+                onChange={(e) => setAgeRange(e.target.value)}
+                className="appearance-none px-3 py-2 pr-8 bg-white border border-[#135c4a] text-slate-700 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#135c4a] min-w-[120px]"
+              >
+                <option value="1~4月龄">1~4月龄</option>
+                <option value="5~8月龄">5~8月龄</option>
+                <option value="9~12月龄">9~12月龄</option>
+                <option value="15~24月龄">15~24月龄</option>
+                <option value="27~36月龄">27~36月龄</option>
+                <option value="42~60月龄">42~60月龄</option>
+                <option value="66~84月龄">66~84月龄</option>
+              </select>
+              <ChevronDown className="w-4 h-4 text-[#135c4a] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-700">词汇等级:</label>
+            <div className="relative">
+              <select
+                value={vocabLevel}
+                onChange={(e) => setVocabLevel(e.target.value)}
+                className="appearance-none px-3 py-2 pr-8 bg-white border border-[#135c4a] text-slate-700 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#135c4a] min-w-[100px]"
+              >
+                <option value="初级">初级</option>
+                <option value="中级">中级</option>
+                <option value="高级">高级</option>
+              </select>
+              <ChevronDown className="w-4 h-4 text-[#135c4a] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
           <button 
             onClick={handleGenerateDialogue}
             className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors"
           >
             {dialogueState === 'empty' ? '一键生成对话' : '重新生成对话'}
           </button>
+          {dialogueState !== 'empty' && (
+            <button 
+              onClick={handleClearDialogues}
+              className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-md text-sm font-medium hover:bg-red-50 transition-colors"
+            >
+              清空对话
+            </button>
+          )}
           {dialogueState === 'editing' && (
             <button 
               onClick={handleCompleteDialogue}
@@ -467,31 +549,6 @@ function ActivityDialogueTab() {
               完成
             </button>
           )}
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            disabled={dialogueState !== 'parsed' || isGenerating}
-            className={cn(
-              "px-4 py-2 text-white rounded-md text-sm font-medium transition-colors flex items-center gap-2",
-              (dialogueState !== 'parsed' || isGenerating) ? "bg-slate-300 cursor-not-allowed" : "bg-[#135c4a] hover:bg-[#0f4a3b]"
-            )}
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                生成中...
-              </>
-            ) : hasGenerated ? (
-              <>
-                <RefreshCw className="w-4 h-4" />
-                重新生成
-              </>
-            ) : (
-              <>
-                <Wand2 className="w-4 h-4" />
-                一键生成词卡
-              </>
-            )}
-          </button>
         </div>
       </div>
       <div className="space-y-4 pt-4">
@@ -503,16 +560,34 @@ function ActivityDialogueTab() {
 
         {dialogueState === 'editing' && (
           <div className="space-y-4">
-            {rawDialogues.map((dialogue, idx) => (
-              <div key={idx} className="flex gap-3 items-start">
-                <div className="w-16 shrink-0 pt-2 text-right font-medium text-slate-600">
-                  {dialogue.speaker === 'teacher' ? '老师：' : '学生：'}
+            {Array.from({ length: Math.ceil(rawDialogues.length / 2) }).map((_, pairIdx) => (
+              <div key={pairIdx} className="relative group p-4 border border-transparent hover:border-slate-200 hover:bg-slate-50 rounded-xl transition-colors">
+                <button 
+                  onClick={() => handleDeleteDialoguePair(pairIdx)}
+                  className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-all"
+                  title="删除此组对话"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <div className="space-y-4">
+                  {[0, 1].map(offset => {
+                    const idx = pairIdx * 2 + offset;
+                    const dialogue = rawDialogues[idx];
+                    if (!dialogue) return null;
+                    return (
+                      <div key={idx} className="flex gap-3 items-start pr-8">
+                        <div className="w-16 shrink-0 pt-2 text-right font-medium text-slate-600">
+                          {dialogue.speaker === 'teacher' ? '老师：' : '学生：'}
+                        </div>
+                        <textarea
+                          value={dialogue.text}
+                          onChange={(e) => handleRawDialogueChange(idx, e.target.value)}
+                          className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#135c4a]/20 min-h-[60px] resize-none"
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
-                <textarea
-                  value={dialogue.text}
-                  onChange={(e) => handleRawDialogueChange(idx, e.target.value)}
-                  className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#135c4a]/20 min-h-[60px] resize-none"
-                />
               </div>
             ))}
           </div>
@@ -541,41 +616,71 @@ function ActivityDialogueTab() {
                   : "bg-emerald-50 rounded-tr-md"
               )}
             >
-              <div className="text-xs font-medium text-slate-500 mb-3">
-                {dialogue.speaker === 'teacher' ? '老师' : '学生'}
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-xs font-medium text-slate-500">
+                  {dialogue.speaker === 'teacher' ? '老师' : '学生'}
+                </div>
+                <button 
+                  onClick={() => openGenerateModalForSentence(idx)}
+                  className="text-xs flex items-center gap-1 text-[#135c4a] hover:bg-[#e8f3f0] px-2 py-1 rounded transition-colors"
+                >
+                  <Wand2 className="w-3 h-3" />
+                  生成本句图卡
+                </button>
               </div>
               <div className="flex flex-wrap items-end gap-2">
-                {dialogue.words.map((word: any, wordIdx: number) => (
+                {dialogue.words.map((word: any, wordIdx: number) => {
+                  const isGeneratingWord = generatingWords.includes(`${idx}-${wordIdx}`);
+                  return (
                   <div
                     key={wordIdx}
-                    className="flex flex-col items-center gap-1"
+                    className="flex flex-col items-center gap-1 relative group"
                   >
                     {word.img ? (
-                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-white">
+                      <div 
+                        className="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-white relative group-hover:ring-2 group-hover:ring-[#135c4a] transition-all cursor-pointer"
+                        onClick={() => openGenerateModalForWord(idx, wordIdx)}
+                      >
                         <img 
                           src={word.img} 
                           alt={word.text}
                           className="w-full h-full object-cover"
                         />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <RefreshCw className="w-4 h-4 text-white" />
+                        </div>
                       </div>
-                    ) : isGenerating && shouldHaveImage(word) ? (
+                    ) : isGeneratingWord ? (
                       <div className="w-12 h-12 rounded-lg border border-slate-200 shadow-sm bg-white flex items-center justify-center">
                         <Loader2 className="w-5 h-5 text-[#135c4a] animate-spin" />
                       </div>
                     ) : null}
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm border cursor-default",
-                        POS_COLORS[word.partOfSpeech]
-                      )}
-                    >
-                      {word.text}
-                      <span className="text-[10px] opacity-70">
-                        {POS_LABELS[word.partOfSpeech]}
+                    <div className="relative">
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm border cursor-default",
+                          POS_COLORS[word.partOfSpeech]
+                        )}
+                      >
+                        {word.text}
+                        <span className="text-[10px] opacity-70">
+                          {POS_LABELS[word.partOfSpeech]}
+                        </span>
                       </span>
-                    </span>
+                      {!word.img && !isGeneratingWord && shouldHaveImage(word) && (
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 pb-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none group-hover:pointer-events-auto">
+                          <button 
+                            onClick={() => openGenerateModalForWord(idx, wordIdx)}
+                            className="bg-white border border-slate-200 shadow-md rounded-md px-2 py-1.5 text-[#135c4a] hover:bg-[#e8f3f0] flex items-center gap-1 whitespace-nowrap"
+                          >
+                            <Wand2 className="w-3 h-3" />
+                            <span className="text-xs font-medium">生成图卡</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                ))}
+                )})}
               </div>
             </div>
           </div>
@@ -589,7 +694,7 @@ function ActivityDialogueTab() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <div className="flex items-center gap-2 text-slate-800">
                 <Wand2 className="w-5 h-5 text-[#135c4a]" />
-                <h2 className="text-lg font-bold">AI生成词卡</h2>
+                <h2 className="text-lg font-bold">AI生成图卡</h2>
               </div>
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -645,6 +750,47 @@ function ActivityDialogueTab() {
                       {size.label}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Text Generation in Image */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-slate-700">在图片中生成文字</label>
+                <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+                  <div className="flex items-center justify-between w-full sm:w-[200px] p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                    <label className="text-sm font-medium text-slate-700">中文</label>
+                    <button
+                      onClick={() => setIncludeChinese(!includeChinese)}
+                      className={cn(
+                        "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
+                        includeChinese ? "bg-[#135c4a]" : "bg-slate-300"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                          includeChinese ? "translate-x-4" : "translate-x-1"
+                        )}
+                      />
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between w-full sm:w-[200px] p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                    <label className="text-sm font-medium text-slate-700">英文</label>
+                    <button
+                      onClick={() => setIncludeEnglish(!includeEnglish)}
+                      className={cn(
+                        "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
+                        includeEnglish ? "bg-[#135c4a]" : "bg-slate-300"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                          includeEnglish ? "translate-x-4" : "translate-x-1"
+                        )}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

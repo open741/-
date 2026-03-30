@@ -32,8 +32,10 @@ export default function AIGenerateView() {
   const [prompt, setPrompt] = useState('');
   const [selectedStyle, setSelectedStyle] = useState('cartoon');
   const [selectedSize, setSelectedSize] = useState('1:1');
-  const [selectedQuantity, setSelectedQuantity] = useState<1 | 2 | 4>(4);
+  const [selectedQuantity, setSelectedQuantity] = useState<number>(4);
   const [isGroupImage, setIsGroupImage] = useState(false);
+  const [chineseText, setChineseText] = useState('');
+  const [englishText, setEnglishText] = useState('');
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -57,6 +59,8 @@ export default function AIGenerateView() {
       size: selectedSize,
       quantity: selectedQuantity,
       isGroupImage,
+      chineseText,
+      englishText,
       creator: '蒋永亮',
     });
     
@@ -64,6 +68,8 @@ export default function AIGenerateView() {
       setIsGenerating(false);
       setPrompt('');
       setTaskName('');
+      setChineseText('');
+      setEnglishText('');
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     }, 1000);
@@ -80,14 +86,14 @@ export default function AIGenerateView() {
             className="fixed top-10 left-1/2 z-50 flex items-center gap-2 px-5 py-3 bg-white border border-[#135c4a]/20 shadow-xl shadow-[#135c4a]/5 rounded-xl"
           >
             <CheckCircle2 className="w-5 h-5 text-[#135c4a]" />
-            <span className="text-sm font-medium text-slate-800">生成中，请前往图卡页面查看</span>
+            <span className="text-sm font-medium text-slate-800">生成中，请在右侧任务列表查看</span>
           </motion.div>
         )}
       </AnimatePresence>
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-3xl mx-auto w-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col"
+      className="w-full h-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col"
     >
       <div className="p-6 overflow-y-auto flex-1 space-y-8">
         <div className="space-y-3">
@@ -123,7 +129,7 @@ export default function AIGenerateView() {
 
         <div className="space-y-3">
           <label className="text-sm font-semibold text-slate-700">图像风格</label>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {STYLES.map((style) => (
               <button
                 key={style.id}
@@ -170,14 +176,14 @@ export default function AIGenerateView() {
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-3">
             <label className={cn("text-sm font-semibold", isGroupImage ? "text-slate-400" : "text-slate-700")}>生成数量</label>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2">
               {[1, 2, 4].map((qty) => (
                 <button
                   key={qty}
                   disabled={isGroupImage}
-                  onClick={() => setSelectedQuantity(qty as 1 | 2 | 4)}
+                  onClick={() => setSelectedQuantity(qty)}
                   className={cn(
-                    "flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all",
+                    "flex-1 min-w-[48px] py-2.5 rounded-xl border-2 text-sm font-medium transition-all",
                     isGroupImage
                       ? selectedQuantity === qty
                         ? "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
@@ -213,6 +219,34 @@ export default function AIGenerateView() {
               <span className="ml-3 text-sm font-medium text-slate-600">
                 {isGroupImage ? '开启' : '关闭'}
               </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <label className="text-sm font-semibold text-slate-700">在图片中生成文字</label>
+          <div className="flex flex-col gap-4">
+            <div className="w-full space-y-1.5">
+              <label className="text-xs font-medium text-slate-500">中文</label>
+              <input
+                type="text"
+                maxLength={8}
+                value={chineseText}
+                onChange={(e) => setChineseText(e.target.value)}
+                placeholder="输入后可在图片中添加中文"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#135c4a] focus:border-transparent transition-all"
+              />
+            </div>
+            <div className="w-full space-y-1.5">
+              <label className="text-xs font-medium text-slate-500">英文</label>
+              <input
+                type="text"
+                maxLength={16}
+                value={englishText}
+                onChange={(e) => setEnglishText(e.target.value)}
+                placeholder="输入后可在图片中添加英文"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#135c4a] focus:border-transparent transition-all"
+              />
             </div>
           </div>
         </div>

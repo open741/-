@@ -46,19 +46,18 @@ function Sidebar() {
 
 function Topbar() {
   return (
-    <header className="h-16 bg-[#135c4a] flex items-center justify-end px-6 text-white shrink-0">
-      <div className="flex items-center gap-6">
+    <header className="h-[72px] bg-[#135c4a] flex items-center justify-end px-8 text-white shrink-0">
+      <div className="flex items-center gap-10">
         <div className="flex items-center gap-2 cursor-pointer hover:text-white/80 transition-colors">
-          <span className="text-sm font-medium">仁怀市特殊教育学校-仁怀特校</span>
-          <ChevronDown className="w-4 h-4" />
+          <span className="text-[17px] font-normal tracking-wide">仁怀市特殊教育学校-仁怀特校</span>
+          <ChevronDown className="w-5 h-5 opacity-60 stroke-[1.2]" />
         </div>
-        <div className="flex items-center gap-3 cursor-pointer">
-          <img 
-            src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
-            alt="User avatar" 
-            className="w-8 h-8 rounded-full bg-white/20"
-          />
-          <span className="text-sm font-medium">蒋永亮</span>
+        <div className="flex items-center gap-4 cursor-pointer">
+          <div className="w-12 h-12 rounded-full bg-[#E5E5E5] flex items-center justify-center overflow-hidden relative">
+            <div className="w-[18px] h-[18px] rounded-full bg-[#A3A3A3] absolute top-[9px]"></div>
+            <div className="w-[32px] h-[16px] rounded-t-[16px] bg-[#A3A3A3] absolute bottom-0"></div>
+          </div>
+          <span className="text-[17px] font-normal tracking-wide">蒋永亮</span>
         </div>
       </div>
     </header>
