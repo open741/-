@@ -1,14 +1,18 @@
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Image as ImageIcon, ListTodo, Trash2, Settings, Plus, Search, Download, Trash, Move, Printer, Sparkles, Wand2, RefreshCw, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, Image as ImageIcon, ListTodo, Trash2, Settings, Plus, Search, Download, Trash, Move, Printer, Sparkles, Wand2, RefreshCw, ChevronDown, FilePlus } from 'lucide-react';
 import { cn } from './lib/utils';
 import GraphicLibrary from './pages/GraphicLibrary';
 import ActivityDetails from './pages/ActivityDetails';
+import NewAssessment from './pages/NewAssessment';
+import AssessmentForm from './pages/AssessmentForm';
+import AssessmentHistory from './pages/AssessmentHistory';
 
 function Sidebar() {
   const location = useLocation();
   const navItems = [
     { icon: ImageIcon, label: '图卡库', path: '/library/all', match: '/library' },
     { icon: ListTodo, label: '活动库', path: '/activity', match: '/activity' },
+    { icon: FilePlus, label: '评估表', path: '/new-assessment', match: '/new-assessment' },
   ];
 
   return (
@@ -76,6 +80,9 @@ export default function App() {
               <Route path="/" element={<Navigate to="/library/all" replace />} />
               <Route path="/library/:tab" element={<GraphicLibrary />} />
               <Route path="/activity" element={<ActivityDetails />} />
+              <Route path="/new-assessment" element={<NewAssessment />} />
+              <Route path="/assessment-form/:id" element={<AssessmentForm />} />
+              <Route path="/assessment-history" element={<AssessmentHistory />} />
             </Routes>
           </main>
         </div>
