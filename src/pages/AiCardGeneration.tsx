@@ -261,9 +261,7 @@ export default function AiCardGeneration() {
             <select className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
               <option>所有创建人</option>
             </select>
-            <select className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
-              <option>全部状态</option>
-            </select>
+
           </div>
 
           {/* Task Cards */}

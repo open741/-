@@ -302,15 +302,19 @@ export default function GraphicLibraryV2() {
   const [isSmartSearchOpen, setIsSmartSearchOpen] = useState(false);
   const [isFoldersOpen, setIsFoldersOpen] = useState(true);
   const [folders, setFolders] = useState<Folder[]>([
+    // 用户自定义文件夹
+    { id: 'usr_1', name: '自然主题图卡', parentId: null, cardIds: [14, 15, 17] },
+    { id: 'usr_2', name: '日常课件素材', parentId: null, cardIds: [18, 19, 21, 22] },
+
     // Level 1: 基础认知层
     { id: 'sys_1', name: '基础认知层', parentId: null, cardIds: [], isSystem: true },
     { id: 'sys_1_1', name: '常见食物', parentId: 'sys_1', cardIds: [1], isSystem: true },
-    { id: 'sys_1_2', name: '居家生活', parentId: 'sys_1', cardIds: [2], isSystem: true },
+    { id: 'sys_1_2', name: '居家生活', parentId: 'sys_1', cardIds: [2, 16], isSystem: true },
     { id: 'sys_1_3', name: '身体感官', parentId: 'sys_1', cardIds: [5], isSystem: true },
     
     // Level 1: 核心功能层
     { id: 'sys_2', name: '核心功能层', parentId: null, cardIds: [], isSystem: true },
-    { id: 'sys_2_1', name: '日常动作', parentId: 'sys_2', cardIds: [3, 8], isSystem: true },
+    { id: 'sys_2_1', name: '日常动作', parentId: 'sys_2', cardIds: [3, 8, 20], isSystem: true },
     { id: 'sys_2_2', name: '生理调节', parentId: 'sys_2', cardIds: [9], isSystem: true },
     { id: 'sys_2_3', name: '数量逻辑', parentId: 'sys_2', cardIds: [6], isSystem: true },
     
@@ -452,7 +456,7 @@ export default function GraphicLibraryV2() {
     return folder.cardIds.length + subFoldersCount;
   };
 
-  const currentFolders = folders.filter(f => f.parentId === currentFolderId);
+  const currentFolders = folders.filter(f => f.parentId === currentFolderId).sort((a, b) => (b.isSystem ? 1 : 0) - (a.isSystem ? 1 : 0));
 
   const handleDragStart = (e: React.DragEvent, cardId: number, sourceFolderId?: string) => {
     e.dataTransfer.setData('cardId', cardId.toString());
@@ -617,15 +621,6 @@ export default function GraphicLibraryV2() {
             )}
           </div>
 
-          {/* Top Right Labels */}
-          <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
-            {isSystemCardRecord && (
-              <div className="text-[10px] text-white/80 bg-[#135c4a]/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
-                系统内置
-              </div>
-            )}
-          </div>
-
           {/* Bottom Right Title Label */}
           <div className="absolute bottom-0 right-0 bg-black/40 text-white text-xs px-2 py-1 rounded-tl-lg backdrop-blur-sm max-w-[90%] truncate">
             {card.title}
@@ -644,7 +639,7 @@ export default function GraphicLibraryV2() {
         >
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-white/80 bg-white/20 px-1.5 py-0.5 rounded">
-              {card.isUpload ? '用户上传' : 'AI生成'}
+              {isSystemCardRecord ? '系统内置' : card.isUpload ? '用户上传' : 'AI生成'}
             </span>
             <span className="text-[10px] text-white/80 bg-white/20 px-1.5 py-0.5 rounded">
               {card.creator}
@@ -662,7 +657,7 @@ export default function GraphicLibraryV2() {
             <button className="flex items-center gap-1 text-[11px] hover:text-white transition-colors" onClick={(e) => e.stopPropagation()}>
               <Printer className="w-3 h-3" /> 打印
             </button>
-            {!isActionRestricted && (
+            {!isActionRestricted && !folderId && (
               <button className="flex items-center gap-1 text-[11px] hover:text-red-400 transition-colors" onClick={(e) => { e.stopPropagation(); handleDeleteCards([card.id]); }}>
                 <Trash2 className="w-3 h-3" /> 删除
               </button>
@@ -778,8 +773,8 @@ export default function GraphicLibraryV2() {
     );
   };
 
-  const folderCards = currentFolderId ? filteredCards.filter(c => folders.find(f => f.id === currentFolderId)?.cardIds.includes(c.id)) : [];
-  const unclassifiedCards = filteredCards.filter(c => !folders.some(f => f.cardIds.includes(c.id)));
+  const folderCards = currentFolderId ? filteredCards.filter(c => folders.find(f => f.id === currentFolderId)?.cardIds.includes(c.id)).sort((a, b) => (b.isSystem ? 1 : 0) - (a.isSystem ? 1 : 0)) : [];
+  const unclassifiedCards = filteredCards.filter(c => !folders.some(f => f.cardIds.includes(c.id))).sort((a, b) => (b.isSystem ? 1 : 0) - (a.isSystem ? 1 : 0));
 
   const getBreadcrumbs = () => {
     const crumbs = [];
@@ -927,7 +922,7 @@ export default function GraphicLibraryV2() {
                 </div>
               )}
               <input 
-                placeholder={searchTags.length === 0 ? "输入关键词，或结合教案/活动..." : "继续输入..."}
+                placeholder={searchTags.length === 0 ? "请描述想搜索的内容，或添加教案和活动进行搜索" : "继续输入..."}
                 className="flex-1 bg-transparent focus:outline-none text-sm text-slate-700 min-w-[200px]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -1270,20 +1265,7 @@ export default function GraphicLibraryV2() {
           className="fixed z-50 bg-white rounded-lg shadow-xl border border-slate-100 py-1 w-40"
           style={{ top: cardContextMenu.y, left: cardContextMenu.x }}
         >
-          <button 
-            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-[#135c4a] transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              const card = cards.find(c => c.id === cardContextMenu.cardId);
-              if (card) {
-                setRenameCardId(card.id);
-                setRenameCardValue(card.title);
-              }
-              setCardContextMenu(null);
-            }}
-          >
-            重命名
-          </button>
+          
           
           <div 
             className="relative"
@@ -1356,7 +1338,7 @@ export default function GraphicLibraryV2() {
                   key={lesson.id}
                   onClick={() => {
                     if (!searchTags.find(t => t.id === lesson.id)) {
-                      setSearchTags([...searchTags, { id: lesson.id, type: 'lesson', label: lesson.title }]);
+                      setSearchTags([...searchTags.filter((t: any) => t.type !== 'lesson' && t.type !== 'activity'), { id: lesson.id, type: 'lesson', label: lesson.title }]);
                     }
                     setIsLessonModalOpen(false);
                     setLessonSearchText('');
@@ -1404,7 +1386,7 @@ export default function GraphicLibraryV2() {
                 <button
                   onClick={() => {
                     if (!searchTags.find(t => t.id === activity.id)) {
-                      setSearchTags([...searchTags, { id: activity.id, type: 'activity', label: activity.title }]);
+                      setSearchTags([...searchTags.filter((t: any) => t.type !== 'activity' && t.type !== 'lesson'), { id: activity.id, type: 'activity', label: activity.title }]);
                     }
                     setIsActivityModalOpen(false);
                     setActivitySearchText('');
@@ -1444,23 +1426,27 @@ export default function GraphicLibraryV2() {
               </button>
 
               {/* Upload Card Floating Actions */}
-              {selectedDetailCard.isUpload && (
+              {(selectedDetailCard.isUpload || selectedDetailCard.isSystem) && (
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-4 bg-black/60 backdrop-blur-md px-6 py-3 rounded-2xl text-white shadow-2xl">
                   <button className="flex flex-col items-center gap-1.5 hover:text-emerald-400 transition-colors" onClick={(e) => e.stopPropagation()}>
                     <Download className="w-5 h-5" />
                     <span className="text-xs font-medium">下载</span>
                   </button>
-                  <div className="w-px h-8 bg-white/20 mx-2"></div>
-                  <button className="flex flex-col items-center gap-1.5 hover:text-red-400 transition-colors" onClick={(e) => { e.stopPropagation(); }}>
-                    <Trash2 className="w-5 h-5" />
-                    <span className="text-xs font-medium">删除</span>
-                  </button>
+                  {!selectedDetailCard.isSystem && (
+                    <>
+                      <div className="w-px h-8 bg-white/20 mx-2"></div>
+                      <button className="flex flex-col items-center gap-1.5 hover:text-red-400 transition-colors" onClick={(e) => { e.stopPropagation(); }}>
+                        <Trash2 className="w-5 h-5" />
+                        <span className="text-xs font-medium">删除</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
 
             {/* Right: Info Panel */}
-            {!selectedDetailCard.isUpload && (
+            {!(selectedDetailCard.isUpload || selectedDetailCard.isSystem) && (
             <div className="w-[400px] flex flex-col bg-white border-l border-slate-100">
               <div className="p-6 flex items-center justify-end border-b border-slate-50 h-16">
                 {/* Removed MoreHorizontal button */}
