@@ -7,11 +7,28 @@ import ActivityDetails from './pages/ActivityDetails';
 import NewAssessment from './pages/NewAssessment';
 import AssessmentForm from './pages/AssessmentForm';
 import AssessmentHistory from './pages/AssessmentHistory';
+import AiCardGeneration from './pages/AiCardGeneration';
+
+// Startup migration: Clear out any old unsplash/picsum broken mock images from localStorage
+try {
+  const savedTasks = localStorage.getItem('ai_tasks');
+  if (savedTasks) {
+    const tasks = JSON.parse(savedTasks);
+    const validTasks = tasks.filter((t: any) => {
+      return !t.images?.some((img: string) => img.includes('unsplash.com') || img.includes('picsum.photos'));
+    });
+    if (tasks.length !== validTasks.length) {
+      localStorage.setItem('ai_tasks', JSON.stringify(validTasks));
+    }
+  }
+} catch (e) {
+  // Ignore localStorage parsing errors
+}
 
 function Sidebar() {
   const location = useLocation();
   const navItems = [
-    { icon: ImageIcon, label: '图卡库', path: '/library/all', match: '/library' },
+    { icon: ImageIcon, label: '图卡库', path: '/library/all', match: '/library/' },
     { icon: ImageIcon, label: '图卡库v2', path: '/library-v2', match: '/library-v2' },
     { icon: ListTodo, label: '活动库', path: '/activity', match: '/activity' },
     { icon: FilePlus, label: '评估表', path: '/new-assessment', match: '/new-assessment' },
@@ -86,6 +103,7 @@ export default function App() {
               <Route path="/new-assessment" element={<NewAssessment />} />
               <Route path="/assessment-form/:id" element={<AssessmentForm />} />
               <Route path="/assessment-history" element={<AssessmentHistory />} />
+              <Route path="/ai-generation" element={<AiCardGeneration />} />
             </Routes>
           </main>
         </div>

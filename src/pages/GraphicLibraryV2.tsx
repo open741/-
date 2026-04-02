@@ -1,6 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Printer, Upload, Sparkles, Edit2, Download, Trash2, ChevronDown, ChevronLeft, ChevronRight, CheckSquare, Square, Plus, PlusCircle, X, FolderOpen, MoreHorizontal, ListFilter } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { useNavigate } from 'react-router-dom';
+import { Search, Printer, Upload, Sparkles, Edit2, Download, Trash2, ChevronDown, ChevronLeft, ChevronRight, CheckSquare, Square, Plus, PlusCircle, X, FolderOpen, MoreHorizontal, ListFilter, RefreshCw } from 'lucide-react';
+import { cn, generatePlaceholder } from '../lib/utils';
+
+const mockLessons = [
+  { id: 'l1', title: '认识水果' },
+  { id: 'l2', title: '春天在哪里' },
+  { id: 'l3', title: '我的身体' },
+  { id: 'l4', title: '交通工具对对碰' },
+  { id: 'l5', title: '认识颜色' },
+];
+
+const mockActivities = [
+  { id: 'a1', title: '户外运动' },
+  { id: 'a2', title: '涂色练习' },
+  { id: 'a3', title: '日常行为' },
+  { id: 'a4', title: '情绪认知' },
+  { id: 'a5', title: '数学游戏' },
+];
 
 const mockCards = [
   {
@@ -9,8 +26,9 @@ const mockCards = [
     creator: '胡小桃',
     status: '已发布',
     activity: '认识水果',
-    imageUrl: 'https://images.unsplash.com/photo-1587691592099-24045742c181?auto=format&fit=crop&q=80&w=400',
-    selected: true,
+    imageUrl: generatePlaceholder('Img_1', '图卡1'),
+    selected: false,
+    isSystem: true,
   },
   {
     id: 2,
@@ -18,8 +36,9 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     activity: '日常行为',
-    imageUrl: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=400',
+    imageUrl: generatePlaceholder('Img_2', '图卡2'),
     selected: false,
+    isSystem: true,
   },
   {
     id: 3,
@@ -27,8 +46,9 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     activity: '涂色练习',
-    imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&q=80&w=400',
+    imageUrl: generatePlaceholder('Img_3', '图卡3'),
     selected: false,
+    isSystem: true,
   },
   {
     id: 4,
@@ -36,9 +56,10 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     activity: '自然观察',
-    imageUrl: 'https://images.unsplash.com/photo-1471897488648-5eae4ac6686b?auto=format&fit=crop&q=80&w=400',
+    imageUrl: generatePlaceholder('Img_4', '图卡4'),
     selected: false,
     isAi: true,
+    isSystem: true,
   },
   {
     id: 5,
@@ -46,9 +67,10 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     activity: '情绪认知',
-    imageUrl: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&q=80&w=400',
+    imageUrl: generatePlaceholder('Img_5', '图卡5'),
     selected: false,
-    isAi: true,
+    isAi: false,
+    isSystem: true,
   },
   {
     id: 6,
@@ -56,8 +78,9 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     activity: '体育运动',
-    imageUrl: 'https://images.unsplash.com/photo-1515523110800-9415d13b84a8?auto=format&fit=crop&q=80&w=400',
+    imageUrl: generatePlaceholder('Img_6', '图卡6'),
     selected: false,
+    isSystem: true,
   },
   {
     id: 7,
@@ -65,9 +88,10 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     activity: '未来想象',
-    imageUrl: 'https://images.unsplash.com/photo-1535295972055-1c762f4483e5?auto=format&fit=crop&q=80&w=400',
+    imageUrl: generatePlaceholder('Img_7', '图卡7'),
     selected: false,
     isAi: true,
+    isSystem: true,
   },
   {
     id: 8,
@@ -75,8 +99,9 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     activity: '日常行为',
-    imageUrl: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=400',
+    imageUrl: generatePlaceholder('Img_8', '图卡8'),
     selected: false,
+    isSystem: true,
   },
   {
     id: 9,
@@ -84,8 +109,9 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     activity: '涂色练习',
-    imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&q=80&w=400',
+    imageUrl: generatePlaceholder('Img_9', '图卡9'),
     selected: false,
+    isSystem: true,
   },
   {
     id: 10,
@@ -93,9 +119,10 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     activity: '自然观察',
-    imageUrl: 'https://images.unsplash.com/photo-1471897488648-5eae4ac6686b?auto=format&fit=crop&q=80&w=400',
+    imageUrl: generatePlaceholder('Img_10', '图卡10'),
     selected: false,
     isAi: true,
+    isSystem: true,
   },
   {
     id: 11,
@@ -103,9 +130,10 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     activity: '情绪认知',
-    imageUrl: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&q=80&w=400',
+    imageUrl: generatePlaceholder('Img_11', '图卡11'),
     selected: false,
     isAi: true,
+    isSystem: true,
   },
   {
     id: 12,
@@ -113,8 +141,9 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     activity: '体育运动',
-    imageUrl: 'https://images.unsplash.com/photo-1515523110800-9415d13b84a8?auto=format&fit=crop&q=80&w=400',
+    imageUrl: generatePlaceholder('Img_12', '图卡12'),
     selected: false,
+    isSystem: true,
   },
   {
     id: 13,
@@ -122,20 +151,148 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     activity: '未来想象',
-    imageUrl: 'https://images.unsplash.com/photo-1535295972055-1c762f4483e5?auto=format&fit=crop&q=80&w=400',
+    imageUrl: generatePlaceholder('Img_13', '图卡13'),
+    selected: false,
+    isAi: true,
+    isSystem: true,
+  },
+  {
+    id: 14,
+    title: '可爱小猫',
+    creator: '胡小桃',
+    status: '已发布',
+    activity: '生物认知',
+    imageUrl: generatePlaceholder('Img_14', '图卡14'),
+    selected: false,
+  },
+  {
+    id: 15,
+    title: '金毛寻回犬',
+    creator: '胡小桃',
+    status: '已发布',
+    activity: '生物认知',
+    imageUrl: generatePlaceholder('Img_15', '图卡15'),
+    selected: false,
+  },
+  {
+    id: 16,
+    title: '雨天窗外',
+    creator: '胡小桃',
+    status: '未发布',
+    activity: '天气认知',
+    imageUrl: generatePlaceholder('Img_16', '图卡16'),
+    selected: false,
+  },
+  {
+    id: 17,
+    title: '彩虹',
+    creator: '胡小桃',
+    status: '已发布',
+    activity: '自然景观',
+    imageUrl: generatePlaceholder('Img_17', '图卡17'),
     selected: false,
     isAi: true,
   },
+  {
+    id: 18,
+    title: '课堂阅读',
+    creator: '胡小桃',
+    status: '未发布',
+    activity: '日常学习',
+    imageUrl: generatePlaceholder('Img_18', '图卡18'),
+    selected: false,
+  },
+  {
+    id: 19,
+    title: '课间休息',
+    creator: '胡小桃',
+    status: '已发布',
+    activity: '日常学习',
+    imageUrl: generatePlaceholder('Img_19', '图卡19'),
+    selected: false,
+  },
+  {
+    id: 20,
+    title: '彩色画笔',
+    creator: '胡小桃',
+    status: '未发布',
+    images: [
+        generatePlaceholder('Img_20', '图卡20'),
+        generatePlaceholder('Img_21', '图卡21'),
+        generatePlaceholder('Img_22', '图卡22'),
+        generatePlaceholder('Img_23', '图卡23')
+      ],
+    activity: '美术手工',
+    selected: false,
+  },
+  {
+    id: 21,
+    title: '剪影画作',
+    creator: '刘老师',
+    status: '未发布',
+    activity: '创意手工',
+    imageUrl: generatePlaceholder('Upload_1', '用户上传自传'),
+    selected: false,
+    isUpload: true,
+  },
+  {
+    id: 22,
+    title: '手工风车',
+    creator: '刘老师',
+    status: '未发布',
+    activity: '自然体验',
+    imageUrl: generatePlaceholder('Upload_2', '课堂照片'),
+    selected: false,
+    isUpload: true,
+  },
 ];
+
+const mockCardDetails: Record<number, any> = {
+  4: {
+    taskName: '自然观察任务',
+    description: '一个写实风格的男孩正在森林里观察一只红色的瓢虫，瓢虫停在一片绿叶上，背景是模糊的森林绿意，色调柔和。',
+    style: '写实',
+    size: '1:1',
+    count: '4张',
+    isGroup: '组图',
+    chinese: '男孩观察瓢虫',
+    english: 'Boy observing a ladybug',
+    siblings: [
+      generatePlaceholder('Img_25', '图卡25'),
+      generatePlaceholder('Img_26', '图卡26'),
+      generatePlaceholder('Img_27', '图卡27'),
+      generatePlaceholder('Img_28', '图卡28')
+    ]
+  },
+  7: {
+    taskName: '科技男孩系列',
+    description: '一个充满科技感的男孩，穿着发光的未来服饰，身处赛博朋克风的城市实验室，周围有全息投影，冷色调。',
+    style: '3D',
+    size: '1:1',
+    count: '4张',
+    isGroup: '组图',
+    chinese: '科技感男孩',
+    english: 'Tech-savvy boy',
+    siblings: [
+      generatePlaceholder('Img_29', '图卡29'),
+      generatePlaceholder('Img_30', '图卡30'),
+      generatePlaceholder('Img_31', '图卡31'),
+      generatePlaceholder('Img_32', '图卡32')
+    ]
+  }
+};
+
 
 type Folder = {
   id: string;
   name: string;
   parentId: string | null;
   cardIds: number[];
+  isSystem?: boolean;
 };
 
 export default function GraphicLibraryV2() {
+  const navigate = useNavigate();
   const [cards, setCards] = useState(mockCards);
   const [selectAll, setSelectAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -145,8 +302,23 @@ export default function GraphicLibraryV2() {
   const [isSmartSearchOpen, setIsSmartSearchOpen] = useState(false);
   const [isFoldersOpen, setIsFoldersOpen] = useState(true);
   const [folders, setFolders] = useState<Folder[]>([
-    { id: 'f1', name: '交通工具', parentId: null, cardIds: [] },
-    { id: 'f2', name: '水果', parentId: null, cardIds: [] },
+    // Level 1: 基础认知层
+    { id: 'sys_1', name: '基础认知层', parentId: null, cardIds: [], isSystem: true },
+    { id: 'sys_1_1', name: '常见食物', parentId: 'sys_1', cardIds: [1], isSystem: true },
+    { id: 'sys_1_2', name: '居家生活', parentId: 'sys_1', cardIds: [2], isSystem: true },
+    { id: 'sys_1_3', name: '身体感官', parentId: 'sys_1', cardIds: [5], isSystem: true },
+    
+    // Level 1: 核心功能层
+    { id: 'sys_2', name: '核心功能层', parentId: null, cardIds: [], isSystem: true },
+    { id: 'sys_2_1', name: '日常动作', parentId: 'sys_2', cardIds: [3, 8], isSystem: true },
+    { id: 'sys_2_2', name: '生理调节', parentId: 'sys_2', cardIds: [9], isSystem: true },
+    { id: 'sys_2_3', name: '数量逻辑', parentId: 'sys_2', cardIds: [6], isSystem: true },
+    
+    // Level 1: 社会化层
+    { id: 'sys_3', name: '社会化层', parentId: null, cardIds: [], isSystem: true },
+    { id: 'sys_3_1', name: '场景社交', parentId: 'sys_3', cardIds: [4, 10], isSystem: true },
+    { id: 'sys_3_2', name: '需求表达', parentId: 'sys_3', cardIds: [11], isSystem: true },
+    { id: 'sys_3_3', name: '事务关系', parentId: 'sys_3', cardIds: [7, 12, 13], isSystem: true },
   ]);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
@@ -160,6 +332,58 @@ export default function GraphicLibraryV2() {
   const [renameCardValue, setRenameCardValue] = useState('');
   const [newFolderParentId, setNewFolderParentId] = useState<string | null | undefined>(undefined);
   const [pendingMoveCard, setPendingMoveCard] = useState<{cardId: number, sourceFolderId: string} | null>(null);
+
+  // Smart Search Modal States
+  const [isLessonModalOpen, setIsLessonModalOpen] = useState(false);
+  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+  const [lessonSearchText, setLessonSearchText] = useState('');
+  const [activitySearchText, setActivitySearchText] = useState('');
+
+  // Card Detail Modal States
+  const [selectedDetailCard, setSelectedDetailCard] = useState<any>(null);
+  const [currentDetailImage, setCurrentDetailImage] = useState<string | null>(null);
+
+  // Persistence Hook: Load AI-generated cards from localStorage
+  useEffect(() => {
+    const storedTasks = JSON.parse(localStorage.getItem('ai_tasks') || '[]');
+    if (storedTasks.length > 0) {
+      const generatedCards = storedTasks.map((task: any) => ({
+        id: task.id,
+        title: task.title,
+        creator: task.creator,
+        status: '未发布',
+        activity: task.params.style + '系列',
+        imageUrl: task.images[0],
+        selected: false,
+        isAi: true,
+        description: task.desc,
+        taskName: task.title,
+        style: task.params.style,
+        size: task.params.size,
+        count: task.params.count,
+        siblings: task.images
+      }));
+
+      // Combine with existing cards, avoiding duplicates
+      setCards(prev => {
+        const existingIds = new Set(prev.map(c => c.id));
+        const uniqueNew = generatedCards.filter((c: any) => !existingIds.has(c.id));
+        return [...uniqueNew, ...prev];
+      });
+
+      // Update mockDetails for modal
+      generatedCards.forEach((c: any) => {
+        mockCardDetails[c.id] = {
+           taskName: c.taskName,
+           description: c.description,
+           style: c.style,
+           size: c.size,
+           count: c.count,
+           siblings: c.siblings
+        };
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const handleClick = () => {
@@ -330,92 +554,110 @@ export default function GraphicLibraryV2() {
     setCards(cards.map(c => c.id === id ? { ...c, selected: !c.selected } : c));
   };
 
-  const renderCard = (card: any, folderId?: string) => (
-    <div 
-      key={card.id} 
-      className="relative group cursor-pointer"
-      onClick={() => toggleSelect(card.id)}
-      draggable
-      onDragStart={(e) => handleDragStart(e, card.id, folderId)}
-      onContextMenu={(e) => {
-        if (folderId) {
-          e.preventDefault();
-          setCardContextMenu({ x: e.clientX, y: e.clientY, cardId: card.id, folderId });
-        }
-      }}
-    >
-      {/* Image Container */}
-      <div className={cn(
-        "relative rounded-xl overflow-hidden border-2 transition-all aspect-square group-hover:rounded-b-none",
-        card.selected ? "border-[#135c4a]" : "border-transparent group-hover:border-slate-200"
-      )}>
-        <img 
-          src={card.imageUrl} 
-          alt={card.title} 
-          className="w-full h-full object-cover"
-          referrerPolicy="no-referrer"
-        />
-        
-        {/* Top Left Checkbox */}
-        <div className={cn(
-          "absolute top-2 left-2 z-10",
-          card.selected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-        )}>
-          {card.selected ? (
-            <CheckSquare className="w-5 h-5 text-[#135c4a] bg-white rounded-sm" />
-          ) : (
-            <Square className="w-5 h-5 text-white drop-shadow-md" />
-          )}
-        </div>
+  const renderCard = (card: any, folderId?: string | null) => {
+    const isSystemFolder = folderId ? folders.find(f => f.id === folderId)?.isSystem : false;
+    const isSystemCardRecord = !!card.isSystem;
+    const isActionRestricted = isSystemCardRecord && (isSystemFolder || !folderId);
 
-        {/* Top Right AI Label */}
-        {card.isAi && (
-          <div className="absolute top-2 right-2 text-[10px] text-white/80 bg-black/30 px-1.5 py-0.5 rounded backdrop-blur-sm">
-            AI生成
-          </div>
-        )}
-
-        {/* Bottom Right Title Label */}
-        <div className="absolute bottom-0 right-0 bg-black/40 text-white text-xs px-2 py-1 rounded-tl-lg backdrop-blur-sm max-w-[90%] truncate">
-          {card.title}
-        </div>
-      </div>
-
-      {/* Hover Overlay (Below Image) */}
+    return (
       <div 
-        className={cn(
-          "absolute top-full left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none group-hover:pointer-events-auto",
-          "bg-black/80 backdrop-blur-md rounded-b-xl p-3 flex flex-col gap-3",
-          "border-2 border-t-0",
-          card.selected ? "border-[#135c4a]" : "border-transparent group-hover:border-slate-200"
-        )}
-        style={{ marginTop: '-2px' }}
+        key={card.id} 
+        className="relative group cursor-pointer"
+        onClick={() => setSelectedDetailCard(card)}
+        draggable
+        onDragStart={(e) => handleDragStart(e, card.id, folderId || undefined)}
+        onContextMenu={(e) => {
+          if (folderId && !isActionRestricted) {
+            e.preventDefault();
+            setCardContextMenu({ x: e.clientX, y: e.clientY, cardId: card.id, folderId });
+          }
+        }}
       >
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] text-white/80 bg-white/20 px-1.5 py-0.5 rounded">
-            活动：{card.activity}
-          </span>
-          <span className="text-[10px] text-white/80 bg-white/20 px-1.5 py-0.5 rounded">
-            {card.creator}
-          </span>
+        {/* Image Container */}
+        <div className={cn(
+          "relative rounded-xl overflow-hidden border-2 transition-all aspect-square group-hover:rounded-b-none",
+          card.selected ? "border-[#135c4a]" : "border-transparent group-hover:border-slate-200"
+        )}>
+          <img 
+            src={card.imageUrl} 
+            alt={card.title} 
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          
+          {/* Top Left Checkbox */}
+          <div 
+            className={cn(
+              "absolute top-2 left-2 z-10",
+              card.selected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleSelect(card.id);
+            }}
+          >
+            {card.selected ? (
+              <CheckSquare className="w-5 h-5 text-[#135c4a] bg-white rounded-sm" />
+            ) : (
+              <Square className="w-5 h-5 text-white drop-shadow-md" />
+            )}
+          </div>
+
+          {/* Top Right Labels */}
+          <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+            {isSystemCardRecord && (
+              <div className="text-[10px] text-white/80 bg-[#135c4a]/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
+                系统内置
+              </div>
+            )}
+          </div>
+
+          {/* Bottom Right Title Label */}
+          <div className="absolute bottom-0 right-0 bg-black/40 text-white text-xs px-2 py-1 rounded-tl-lg backdrop-blur-sm max-w-[90%] truncate">
+            {card.title}
+          </div>
         </div>
-        <div className="flex items-center justify-between text-white/90">
-          <button className="flex items-center gap-1 text-[11px] hover:text-white transition-colors" onClick={(e) => e.stopPropagation()}>
-            <Edit2 className="w-3 h-3" /> 重命名
-          </button>
-          <button className="flex items-center gap-1 text-[11px] hover:text-white transition-colors" onClick={(e) => e.stopPropagation()}>
-            <Download className="w-3 h-3" /> 下载
-          </button>
-          <button className="flex items-center gap-1 text-[11px] hover:text-white transition-colors" onClick={(e) => e.stopPropagation()}>
-            <Printer className="w-3 h-3" /> 打印
-          </button>
-          <button className="flex items-center gap-1 text-[11px] hover:text-red-400 transition-colors" onClick={(e) => e.stopPropagation()}>
-            <Trash2 className="w-3 h-3" /> 删除
-          </button>
+
+        {/* Hover Overlay (Below Image) */}
+        <div 
+          className={cn(
+            "absolute top-full left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none group-hover:pointer-events-auto",
+            "bg-black/80 backdrop-blur-md rounded-b-xl p-3 flex flex-col gap-3",
+            "border-2 border-t-0",
+            card.selected ? "border-[#135c4a]" : "border-transparent group-hover:border-slate-200"
+          )}
+          style={{ marginTop: '-2px' }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-white/80 bg-white/20 px-1.5 py-0.5 rounded">
+              {card.isUpload ? '用户上传' : 'AI生成'}
+            </span>
+            <span className="text-[10px] text-white/80 bg-white/20 px-1.5 py-0.5 rounded">
+              {card.creator}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-white/90">
+            {!isActionRestricted && (
+              <button className="flex items-center gap-1 text-[11px] hover:text-white transition-colors" onClick={(e) => e.stopPropagation()}>
+                <Edit2 className="w-3 h-3" /> 重命名
+              </button>
+            )}
+            <button className="flex items-center gap-1 text-[11px] hover:text-white transition-colors" onClick={(e) => e.stopPropagation()}>
+              <Download className="w-3 h-3" /> 下载
+            </button>
+            <button className="flex items-center gap-1 text-[11px] hover:text-white transition-colors" onClick={(e) => e.stopPropagation()}>
+              <Printer className="w-3 h-3" /> 打印
+            </button>
+            {!isActionRestricted && (
+              <button className="flex items-center gap-1 text-[11px] hover:text-red-400 transition-colors" onClick={(e) => e.stopPropagation()}>
+                <Trash2 className="w-3 h-3" /> 删除
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderFolder = (folder: Folder) => {
     const firstCardId = folder.cardIds[0];
@@ -426,7 +668,7 @@ export default function GraphicLibraryV2() {
         key={folder.id}
         onClick={() => setCurrentFolderId(folder.id)}
         className={cn(
-          "aspect-square flex flex-col rounded-xl border overflow-hidden hover:shadow-md transition-all cursor-pointer group",
+          "aspect-square flex flex-col rounded-xl border hover:shadow-md transition-all cursor-pointer group",
           dragOverFolderId === folder.id ? "border-[#135c4a] ring-2 ring-[#135c4a]/20 bg-emerald-50" : "border-slate-200 bg-white"
         )}
         onDragOver={(e) => handleDragOver(e, folder.id)}
@@ -434,10 +676,25 @@ export default function GraphicLibraryV2() {
         onDrop={(e) => handleDrop(e, folder.id)}
       >
         <div className={cn(
-          "flex-1 flex items-center justify-center transition-colors relative overflow-hidden",
-          dragOverFolderId === folder.id ? "bg-emerald-50/50" : "bg-slate-50"
+          "flex-1 flex items-center justify-center transition-colors relative overflow-hidden rounded-t-[11px]",
+          dragOverFolderId === folder.id ? "bg-emerald-50/50" : "bg-slate-100"
         )}>
-          {firstCard ? (
+          {folder.isSystem ? (
+            <div className="w-full h-full relative flex items-center justify-center bg-gradient-to-br from-emerald-600 via-[#135c4a] to-slate-900 group-hover:scale-105 transition-transform duration-500">
+              {/* Decorative patterns */}
+              <div className="absolute inset-0 opacity-10 pointer-events-none">
+                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_1px_1px,#fff_1px,transparent_0)] bg-[size:20px_20px]"></div>
+              </div>
+              <div className="flex flex-col items-center gap-3">
+                <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-xl ring-1 ring-white/10">
+                  <FolderOpen className="w-10 h-10 text-white drop-shadow-lg" />
+                </div>
+              </div>
+              <div className="absolute top-2 left-2 bg-[#135c4a]/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-md border border-white/10">
+                <span className="text-[10px] text-white/90 font-bold tracking-wider">SYSTEM</span>
+              </div>
+            </div>
+          ) : firstCard ? (
             <>
               <img src={firstCard.imageUrl} alt={folder.name} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
@@ -451,27 +708,32 @@ export default function GraphicLibraryV2() {
               dragOverFolderId === folder.id ? "text-[#135c4a]" : "text-slate-400"
             )}>
               <div className="relative">
-                <FolderOpen className={cn("w-8 h-8", dragOverFolderId === folder.id ? "opacity-100" : "opacity-50")} />
-                {getFolderItemCount(folder.id) === 0 && <Sparkles className="w-3 h-3 absolute -top-1 -right-1 opacity-50" />}
+                <FolderOpen className={cn("w-10 h-10", (dragOverFolderId === folder.id) ? "opacity-100 text-[#135c4a]" : "opacity-50")} />
+                {!folder.isSystem && <Sparkles className="w-3 h-3 absolute -top-1 -right-1 opacity-50" />}
               </div>
-              <span className="text-xs">{getFolderItemCount(folder.id) > 0 ? `${getFolderItemCount(folder.id)} 个项目` : '暂无内容'}</span>
+              <span className="text-xs font-medium">{getFolderItemCount(folder.id) > 0 ? `${getFolderItemCount(folder.id)} 个项目` : '暂无内容'}</span>
             </div>
           )}
         </div>
-        <div className="p-3 flex items-center justify-between bg-white border-t border-slate-100 relative">
+        <div className="p-3 flex items-center justify-between bg-white border-t border-slate-100 relative rounded-b-[11px]">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-slate-700 truncate max-w-[100px]">{folder.name}</span>
             <span className="text-xs text-slate-400">{getFolderItemCount(folder.id)}</span>
+            {folder.isSystem && (
+              <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] rounded-md border border-slate-200 font-medium">系统内置</span>
+            )}
           </div>
-          <button 
-            className="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-100" 
-            onClick={(e) => { 
-              e.stopPropagation(); 
-              setActiveFolderMenuId(activeFolderMenuId === folder.id ? null : folder.id); 
-            }}
-          >
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
+          {!folder.isSystem && (
+            <button 
+              className="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-100" 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                setActiveFolderMenuId(activeFolderMenuId === folder.id ? null : folder.id); 
+              }}
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+          )}
           
           {activeFolderMenuId === folder.id && (
             <div className="absolute right-2 top-full mt-1 w-28 bg-white rounded-lg shadow-lg border border-slate-100 py-1 z-30">
@@ -574,114 +836,128 @@ export default function GraphicLibraryV2() {
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100 relative z-20 bg-white">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold text-slate-800">图卡库</h1>
-          <button className="flex items-center gap-2 px-3 py-1.5 bg-[#135c4a] text-white rounded-md hover:bg-[#0f4a3b] transition-colors text-sm font-medium">
+      <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100 relative z-30 bg-white">
+        <div className="flex items-center gap-6">
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight">图卡库</h1>
+          <div className="h-6 w-px bg-slate-200" />
+          <button 
+            onClick={() => navigate('/ai-generation')}
+            className="flex items-center gap-2 px-4 py-2 bg-[#135c4a] text-white rounded-full hover:bg-[#0f4a3b] transition-all shadow-sm hover:shadow-md text-sm font-semibold active:scale-95"
+          >
             <Sparkles className="w-4 h-4" />
             AI生成图卡
           </button>
         </div>
-        <button 
-          onClick={() => setIsSmartSearchOpen(!isSmartSearchOpen)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-medium text-sm ${
-            isSmartSearchOpen 
-              ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' 
-              : 'bg-emerald-50 text-[#135c4a] hover:bg-emerald-100'
-          }`}
-        >
-          {isSmartSearchOpen ? (
-            <>
-              <X className="w-4 h-4" />
-              收起智能搜索
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4" />
-              智能搜索
-            </>
-          )}
-        </button>
+        
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => {
+              if (isSmartSearchOpen) {
+                // Exit logic
+                setIsSmartSearchOpen(false);
+                setSearchQuery('');
+                setSearchTags([]);
+                setAppliedSearchQuery('');
+                setAppliedSearchTags([]);
+                setIsFoldersOpen(true);
+              } else {
+                // Enter logic
+                setIsSmartSearchOpen(true);
+              }
+            }}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-semibold text-sm border-2",
+              isSmartSearchOpen 
+                ? "bg-slate-800 border-slate-800 text-white shadow-lg" 
+                : "bg-emerald-50 border-emerald-100 text-[#135c4a] hover:bg-emerald-100 hover:border-emerald-200"
+            )}
+          >
+            {isSmartSearchOpen ? (
+              <>
+                <X className="w-4 h-4 animate-in fade-in zoom-in duration-300" />
+                <span>退出智能搜索</span>
+              </>
+            ) : (
+              <>
+                <Search className="w-4 h-4 animate-in fade-in zoom-in duration-300" />
+                <span>进入智能搜索</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Smart Search Area - Dropdown Animation */}
       <div 
         className={`transition-all duration-300 ease-in-out origin-top overflow-hidden border-b border-slate-100 bg-gradient-to-b from-emerald-50/50 to-white z-10 ${
-          isSmartSearchOpen ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0 border-transparent'
+          isSmartSearchOpen ? 'max-h-[100px] opacity-100' : 'max-h-0 opacity-0 border-transparent'
         }`}
       >
-        <div className="px-6 py-6 flex flex-col items-center justify-center relative">
-          <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <div className="px-6 py-4 flex items-center gap-4 relative mx-auto">
+          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 whitespace-nowrap">
             <Sparkles className="w-5 h-5 text-[#135c4a]" />
             智能搜索
           </h2>
-          <div className="relative w-full max-w-4xl bg-white border-2 border-slate-200 rounded-2xl shadow-sm focus-within:border-[#135c4a] focus-within:ring-4 focus-within:ring-[#135c4a]/10 transition-all overflow-hidden flex flex-col min-h-[120px]">
-          <div className="p-4 pb-14 flex flex-col gap-2 flex-1">
-            {searchTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {searchTags.map(tag => (
-                  <span key={tag.id} className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-[#135c4a] border border-emerald-200 rounded-lg text-sm font-medium">
-                    {tag.type === 'lesson' ? '教案：' : '活动：'}{tag.label}
-                    <button onClick={() => removeTag(tag.id)} className="hover:text-emerald-700 ml-1 focus:outline-none">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-            <textarea 
-              placeholder={searchTags.length === 0 ? "输入关键词，或使用右侧按钮结合教案/活动进行智能推荐..." : "继续输入关键词..."}
-              className="w-full flex-1 resize-none bg-transparent focus:outline-none text-base text-slate-700"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
+          <div className="relative flex-1 bg-white border-2 border-slate-200 rounded-full shadow-sm focus-within:border-[#135c4a] focus-within:ring-2 focus-within:ring-[#135c4a]/10 transition-all overflow-hidden flex items-center h-12">
+            <div className="flex-1 flex items-center gap-2 px-4 h-full">
+              {searchTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 items-center">
+                  {searchTags.map(tag => (
+                    <span key={tag.id} className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-[#135c4a] border border-emerald-200 rounded-full text-xs font-medium whitespace-nowrap">
+                      {tag.type === 'lesson' ? '教案：' : '活动：'}{tag.label}
+                      <button onClick={() => removeTag(tag.id)} className="hover:text-emerald-700 ml-0.5 focus:outline-none">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <input 
+                placeholder={searchTags.length === 0 ? "输入关键词，或结合教案/活动..." : "继续输入..."}
+                className="flex-1 bg-transparent focus:outline-none text-sm text-slate-700 min-w-[200px]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    setAppliedSearchQuery(searchQuery);
+                    setAppliedSearchTags(searchTags);
+                    setIsFoldersOpen(false);
+                  }
+                }}
+              />
+            </div>
+            <div className="flex items-center gap-2 pr-2 h-full">
+              <button 
+                onClick={() => setIsLessonModalOpen(true)}
+                className="h-8 px-3 flex items-center justify-center gap-1.5 rounded-full hover:bg-slate-50 text-slate-600 transition-colors text-xs font-medium"
+                title="添加教案"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                教案
+              </button>
+              <button 
+                onClick={() => setIsActivityModalOpen(true)}
+                className="h-8 px-3 flex items-center justify-center gap-1.5 rounded-full hover:bg-slate-50 text-slate-600 transition-colors text-xs font-medium"
+                title="添加活动"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                活动
+              </button>
+              <div className="w-px h-6 bg-slate-200 mx-1"></div>
+              <button 
+                onClick={() => {
                   setAppliedSearchQuery(searchQuery);
                   setAppliedSearchTags(searchTags);
                   setIsFoldersOpen(false);
-                }
-              }}
-            />
+                }}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-[#135c4a] text-white hover:bg-[#0f4a3b] transition-colors shadow-sm"
+                title="发送搜索"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <div className="absolute bottom-3 right-3 flex items-center gap-2">
-            <button 
-              onClick={() => {
-                if (!searchTags.find(t => t.type === 'lesson')) {
-                  setSearchTags([...searchTags, { id: 'l1', type: 'lesson', label: '认识水果' }]);
-                }
-              }}
-              className="h-10 px-3 flex items-center justify-center gap-1.5 rounded-[12px] border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors shadow-sm text-sm font-medium"
-              title="加入教案"
-            >
-              <PlusCircle className="w-4 h-4" />
-              教案
-            </button>
-            <button 
-              onClick={() => {
-                if (!searchTags.find(t => t.type === 'activity')) {
-                  setSearchTags([...searchTags, { id: 'a1', type: 'activity', label: '户外运动' }]);
-                }
-              }}
-              className="h-10 px-3 flex items-center justify-center gap-1.5 rounded-[12px] border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors shadow-sm text-sm font-medium"
-              title="加入活动"
-            >
-              <PlusCircle className="w-4 h-4" />
-              活动
-            </button>
-            <button 
-              onClick={() => {
-                setAppliedSearchQuery(searchQuery);
-                setAppliedSearchTags(searchTags);
-                setIsFoldersOpen(false);
-              }}
-              className="w-10 h-10 flex items-center justify-center rounded-[12px] border border-slate-200 bg-white text-blue-500 hover:bg-blue-50 transition-colors shadow-sm"
-              title="发送搜索"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
         </div>
       </div>
 
@@ -713,8 +989,8 @@ export default function GraphicLibraryV2() {
                   </div>
                 </div>
                 
-                <div className={`grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 transition-all duration-300 origin-top overflow-hidden ${
-                  isFoldersOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+                <div className={`grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 transition-all duration-300 origin-top ${
+                  isFoldersOpen ? 'max-h-[2000px] opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden'
                 }`}>
                   {/* New Folder */}
                   <button 
@@ -729,21 +1005,61 @@ export default function GraphicLibraryV2() {
               </div>
 
               {/* Unclassified Works Section Title */}
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium text-slate-900">
-                  {appliedSearchQuery || appliedSearchTags.length > 0 ? '搜索结果' : '未分类图卡'}
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium">
-                      <Printer className="w-4 h-4" />
-                      打印
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium">
-                      <Upload className="w-4 h-4" />
-                      上传图片
-                    </button>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-slate-900">
+                    {appliedSearchQuery || appliedSearchTags.length > 0 ? '搜索结果' : '未分类图卡'}
                   </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                      <button className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium">
+                        <Printer className="w-4 h-4" />
+                        打印
+                      </button>
+                      <button className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium">
+                        <Upload className="w-4 h-4" />
+                        上传图片
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bulk Actions Bar */}
+                <div className="flex items-center justify-between bg-white border border-slate-100 rounded-lg p-3 shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <button 
+                      onClick={toggleSelectAll}
+                      className={cn(
+                        "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
+                        selectAll 
+                          ? "bg-[#135c4a] text-white" 
+                          : "bg-emerald-50 text-[#135c4a] hover:bg-emerald-100"
+                      )}
+                    >
+                      全选
+                    </button>
+                    <span className="text-sm text-slate-400">已选{selectedCount}项</span>
+                  </div>
+
+                  {selectedCount > 0 && (
+                    <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
+                      <button className="px-4 py-1.5 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium">
+                        批量打印
+                      </button>
+                      <button className="px-4 py-1.5 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium">
+                        批量下载
+                      </button>
+                      <button className="px-4 py-1.5 bg-red-50 text-red-500 rounded-md hover:bg-red-100 transition-colors text-sm font-medium">
+                        批量删除
+                      </button>
+                      <button 
+                        onClick={() => setCards(cards.map(c => ({ ...c, selected: false })))}
+                        className="px-4 py-1.5 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium"
+                      >
+                        取消选择
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -751,7 +1067,7 @@ export default function GraphicLibraryV2() {
             {/* Grid */}
             <div className="px-6 pb-6 pt-4">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7 gap-4">
-                {(appliedSearchQuery || appliedSearchTags.length > 0 ? filteredCards : unclassifiedCards).map((card) => renderCard(card))}
+                {(appliedSearchQuery || appliedSearchTags.length > 0 ? filteredCards : unclassifiedCards).map((card) => renderCard(card, null))}
               </div>
             </div>
 
@@ -995,51 +1311,218 @@ export default function GraphicLibraryV2() {
         </div>
       )}
 
-      {/* Rename Card Modal */}
-      {renameCardId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl w-[400px] p-6 text-slate-900 shadow-xl border border-slate-100">
+      {/* Lesson Selection Modal */}
+      {isLessonModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 shadow-2xl backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-[480px] max-h-[80vh] flex flex-col p-6 text-slate-900 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-slate-900">重命名图卡</h3>
-              <button onClick={() => setRenameCardId(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
+              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <div className="w-1.5 h-6 bg-[#135c4a] rounded-full" />
+                选择教案
+              </h3>
+              <button onClick={() => setIsLessonModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+            
+            <div className="relative mb-4">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input 
+                type="text" 
+                placeholder="搜索教案名称..."
+                value={lessonSearchText}
+                onChange={(e) => setLessonSearchText(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#135c4a] transition-all"
+              />
+            </div>
+            
+            <div className="flex-1 overflow-y-auto pr-1 space-y-1 mb-6">
+              {mockLessons.filter(l => l.title.includes(lessonSearchText)).map(lesson => (
+                <button
+                  key={lesson.id}
+                  onClick={() => {
+                    if (!searchTags.find(t => t.id === lesson.id)) {
+                      setSearchTags([...searchTags, { id: lesson.id, type: 'lesson', label: lesson.title }]);
+                    }
+                    setIsLessonModalOpen(false);
+                    setLessonSearchText('');
+                  }}
+                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors flex items-center justify-between group"
+                >
+                  <span className="text-sm font-medium text-slate-700 group-hover:text-[#135c4a]">{lesson.title}</span>
+                  <div className="w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center group-hover:border-[#135c4a] group-hover:bg-[#135c4a]/5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-transparent group-hover:bg-[#135c4a]/20" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Activity Selection Modal */}
+      {isActivityModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 shadow-2xl backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-[480px] max-h-[80vh] flex flex-col p-6 text-slate-900 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+                选择活动
+              </h3>
+              <button onClick={() => setIsActivityModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+            
+            <div className="relative mb-4">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input 
+                type="text" 
+                placeholder="搜索活动名称..."
+                value={activitySearchText}
+                onChange={(e) => setActivitySearchText(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all"
+              />
+            </div>
+            
+            <div className="flex-1 overflow-y-auto pr-1 space-y-1 mb-6">
+              {mockActivities.filter(a => a.title.includes(activitySearchText)).map(activity => (
+                <button
+                  onClick={() => {
+                    if (!searchTags.find(t => t.id === activity.id)) {
+                      setSearchTags([...searchTags, { id: activity.id, type: 'activity', label: activity.title }]);
+                    }
+                    setIsActivityModalOpen(false);
+                    setActivitySearchText('');
+                  }}
+                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors flex items-center justify-between group"
+                >
+                  <span className="text-sm font-medium text-slate-700 group-hover:text-emerald-600">{activity.title}</span>
+                  <div className="w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center group-hover:border-emerald-500 group-hover:bg-emerald-500/5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-transparent group-hover:bg-emerald-500/20" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Card Detail Modal */}
+      {selectedDetailCard && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white w-[90vw] max-w-6xl h-[85vh] rounded-3xl overflow-hidden flex shadow-2xl animate-in zoom-in-95 duration-300">
+            {/* Left: Image Viewer */}
+            <div className="flex-1 bg-slate-900 relative flex items-center justify-center group/viewer">
+              <img 
+                src={currentDetailImage || selectedDetailCard.imageUrl} 
+                className="max-w-full max-h-full object-contain"
+                alt="Preview"
+                referrerPolicy="no-referrer"
+              />
+              
+              {/* Close Button */}
+              <button 
+                onClick={() => { setSelectedDetailCard(null); setCurrentDetailImage(null); }}
+                className="absolute top-6 left-6 p-2.5 bg-black/20 hover:bg-black/40 text-white rounded-xl backdrop-blur-md transition-all"
+              >
                 <X className="w-5 h-5" />
               </button>
+
+              {/* Upload Card Floating Actions */}
+              {selectedDetailCard.isUpload && (
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-4 bg-black/60 backdrop-blur-md px-6 py-3 rounded-2xl text-white shadow-2xl">
+                  <button className="flex flex-col items-center gap-1.5 hover:text-emerald-400 transition-colors" onClick={(e) => e.stopPropagation()}>
+                    <Download className="w-5 h-5" />
+                    <span className="text-xs font-medium">下载</span>
+                  </button>
+                  <div className="w-px h-8 bg-white/20 mx-2"></div>
+                  <button className="flex flex-col items-center gap-1.5 hover:text-red-400 transition-colors" onClick={(e) => { e.stopPropagation(); }}>
+                    <Trash2 className="w-5 h-5" />
+                    <span className="text-xs font-medium">删除</span>
+                  </button>
+                </div>
+              )}
             </div>
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-700 mb-2">图卡名称</label>
-              <div className="relative">
-                <input 
-                  type="text" 
-                  maxLength={30}
-                  value={renameCardValue}
-                  onChange={(e) => setRenameCardValue(e.target.value)}
-                  placeholder="请输入"
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#135c4a] focus:ring-1 focus:ring-[#135c4a] transition-all"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
-                  {renameCardValue.length} / 30
-                </span>
+
+            {/* Right: Info Panel */}
+            {!selectedDetailCard.isUpload && (
+            <div className="w-[400px] flex flex-col bg-white border-l border-slate-100">
+              <div className="p-6 flex items-center justify-end border-b border-slate-50 h-16">
+                {/* Removed MoreHorizontal button */}
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar-light">
+                {/* Sibling List */}
+                {mockCardDetails[selectedDetailCard.id]?.siblings?.length > 1 && (
+                  <div className="grid grid-cols-4 gap-2">
+                     {mockCardDetails[selectedDetailCard.id].siblings.map((img: string, idx: number) => (
+                       <div 
+                         key={idx} 
+                         onClick={() => setCurrentDetailImage(img)}
+                         className={cn(
+                           "aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all",
+                           (currentDetailImage === img || (!currentDetailImage && selectedDetailCard.imageUrl === img)) ? "border-[#135c4a] ring-2 ring-[#135c4a]/10" : "border-transparent opacity-60 hover:opacity-100"
+                         )}
+                       >
+                         <img src={img} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                       </div>
+                     ))}
+                  </div>
+                )}
+
+                {/* Task Info */}
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">任务名称</h4>
+                    <p className="text-lg font-bold text-slate-800">{mockCardDetails[selectedDetailCard.id]?.taskName || selectedDetailCard.title}</p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">画面描述</h4>
+                    <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                      {mockCardDetails[selectedDetailCard.id]?.description || '暂无描述信息'}
+                    </p>
+                  </div>
+
+                  {/* Metadata Tags */}
+                  <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-medium text-slate-500">
+                    <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.style || '默认风格'}</span>
+                    <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.size || '1:1'}</span>
+                    <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.count || '1张'}</span>
+                    <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.chinese || '中文'}</span>
+                    <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.english || 'English'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Footer */}
+              <div className="p-6 bg-slate-50 grid grid-cols-3 gap-3">
+                 <button 
+                   onClick={() => {
+                     const reuseTask = mockCardDetails[selectedDetailCard.id] || {
+                       title: selectedDetailCard.title,
+                       description: selectedDetailCard.activity
+                     };
+                     navigate('/ai-generation', { state: { reuseTask } });
+                     setSelectedDetailCard(null);
+                   }}
+                   className="flex items-center justify-center gap-2 py-3 bg-white border border-emerald-100 text-[#135c4a] rounded-2xl font-bold text-sm hover:bg-emerald-50 transition-all active:scale-95 shadow-sm"
+                 >
+                   <RefreshCw className="w-4 h-4" />
+                   复用
+                 </button>
+                 <button className="flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold text-sm hover:bg-white shadow-sm transition-all active:scale-95">
+                   <Download className="w-4 h-4" />
+                   下载
+                 </button>
+                 <button className="flex items-center justify-center gap-2 py-3 bg-white border border-red-100 text-red-500 rounded-2xl font-bold text-sm hover:bg-red-50 transition-all active:scale-95">
+                   <Trash2 className="w-4 h-4" />
+                   删除
+                 </button>
               </div>
             </div>
-            <div className="flex justify-end gap-3">
-              <button 
-                onClick={() => setRenameCardId(null)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
-              >
-                取消
-              </button>
-              <button 
-                onClick={() => {
-                  if (renameCardValue.trim()) {
-                    setCards(cards.map(c => c.id === renameCardId ? { ...c, title: renameCardValue.trim() } : c));
-                    setRenameCardId(null);
-                  }
-                }}
-                className="px-4 py-2 rounded-lg bg-[#135c4a] text-white text-sm font-medium hover:bg-[#135c4a]/90 transition-colors"
-              >
-                确定
-              </button>
-            </div>
+            )}
           </div>
         </div>
       )}
