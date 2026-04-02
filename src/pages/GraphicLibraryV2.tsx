@@ -347,28 +347,29 @@ export default function GraphicLibraryV2() {
   useEffect(() => {
     const storedTasks = JSON.parse(localStorage.getItem('ai_tasks') || '[]');
     if (storedTasks.length > 0) {
-      const generatedCards = storedTasks.map((task: any) => ({
-        id: task.id,
-        title: task.title,
+      const generatedCards = storedTasks.flatMap((task: any) => task.images.map((img: string, idx: number) => ({
+        id: typeof task.id === 'number' ? task.id * 100 + idx : parseInt(`${task.id}${idx}`),
+        title: task.images.length > 1 ? `${task.title} - ${idx + 1}` : task.title,
         creator: task.creator,
         status: '未发布',
         activity: task.params.style + '系列',
-        imageUrl: task.images[0],
+        imageUrl: img,
         selected: false,
         isAi: true,
         description: task.desc,
         taskName: task.title,
         style: task.params.style,
         size: task.params.size,
-        count: task.params.count,
-        siblings: task.images
-      }));
+        count: '1张',
+        siblings: []
+      })));
 
       // Combine with existing cards, avoiding duplicates
+      const deletedAiIds = new Set(JSON.parse(localStorage.getItem('deleted_ai_cards') || '[]'));
       setCards(prev => {
         const existingIds = new Set(prev.map(c => c.id));
-        const uniqueNew = generatedCards.filter((c: any) => !existingIds.has(c.id));
-        return [...uniqueNew, ...prev];
+        const uniqueNew = generatedCards.filter((c: any) => !existingIds.has(c.id) && !deletedAiIds.has(c.id));
+        return [...uniqueNew, ...prev.filter((c: any) => !deletedAiIds.has(c.id))];
       });
 
       // Update mockDetails for modal
@@ -478,6 +479,19 @@ export default function GraphicLibraryV2() {
     const idsToDelete = getSubfolderIds(folderId);
     setFolders(folders.filter(f => !idsToDelete.includes(f.id)));
     setActiveFolderMenuId(null);
+  };
+
+  const handleDeleteCards = (idsToDelete: number[]) => {
+    const deletedIds = JSON.parse(localStorage.getItem('deleted_ai_cards') || '[]');
+    const newDeletedIds = [...new Set([...deletedIds, ...idsToDelete])];
+    localStorage.setItem('deleted_ai_cards', JSON.stringify(newDeletedIds));
+
+    setCards(prevCards => prevCards.filter(c => !idsToDelete.includes(c.id)));
+    setFolders(prevFolders => prevFolders.map(f => ({
+      ...f,
+      cardIds: f.cardIds.filter(id => !idsToDelete.includes(id))
+    })));
+    setSelectAll(false);
   };
 
   const handleDrop = (e: React.DragEvent, targetFolderId: string) => {
@@ -649,7 +663,7 @@ export default function GraphicLibraryV2() {
               <Printer className="w-3 h-3" /> 打印
             </button>
             {!isActionRestricted && (
-              <button className="flex items-center gap-1 text-[11px] hover:text-red-400 transition-colors" onClick={(e) => e.stopPropagation()}>
+              <button className="flex items-center gap-1 text-[11px] hover:text-red-400 transition-colors" onClick={(e) => { e.stopPropagation(); handleDeleteCards([card.id]); }}>
                 <Trash2 className="w-3 h-3" /> 删除
               </button>
             )}
@@ -783,7 +797,7 @@ export default function GraphicLibraryV2() {
   };
   const breadcrumbs = getBreadcrumbs();
 
-  const ContextMenuFolderList = ({ parentId }: { parentId: string | null }) => {
+  function ContextMenuFolderList({ parentId }: { parentId: string | null }) {
     const childFolders = folders.filter(f => f.parentId === parentId);
     return (
       <div className="absolute left-full top-0 w-40 bg-white rounded-lg shadow-xl border border-slate-100 py-1 z-50 -ml-1">
@@ -807,7 +821,7 @@ export default function GraphicLibraryV2() {
     );
   };
 
-  const ContextMenuItem = ({ folder }: { folder: Folder }) => {
+  function ContextMenuItem({ folder }: { folder: Folder; key?: React.Key }) {
     const [isHovered, setIsHovered] = useState(false);
     return (
       <div 
@@ -1049,7 +1063,7 @@ export default function GraphicLibraryV2() {
                       <button className="px-4 py-1.5 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium">
                         批量下载
                       </button>
-                      <button className="px-4 py-1.5 bg-red-50 text-red-500 rounded-md hover:bg-red-100 transition-colors text-sm font-medium">
+                      <button onClick={() => handleDeleteCards(cards.filter(c => c.selected).map(c => c.id))} className="px-4 py-1.5 bg-red-50 text-red-500 rounded-md hover:bg-red-100 transition-colors text-sm font-medium">
                         批量删除
                       </button>
                       <button 
@@ -1454,7 +1468,7 @@ export default function GraphicLibraryV2() {
 
               <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar-light">
                 {/* Sibling List */}
-                {mockCardDetails[selectedDetailCard.id]?.siblings?.length > 1 && (
+                {false && (
                   <div className="grid grid-cols-4 gap-2">
                      {mockCardDetails[selectedDetailCard.id].siblings.map((img: string, idx: number) => (
                        <div 
