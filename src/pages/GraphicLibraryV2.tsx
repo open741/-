@@ -217,11 +217,11 @@ const mockCards = [
     creator: '胡小桃',
     status: '未发布',
     images: [
-        generatePlaceholder('Img_20', '图卡20'),
-        generatePlaceholder('Img_21', '图卡21'),
-        generatePlaceholder('Img_22', '图卡22'),
-        generatePlaceholder('Img_23', '图卡23')
-      ],
+      generatePlaceholder('Img_20', '图卡20'),
+      generatePlaceholder('Img_21', '图卡21'),
+      generatePlaceholder('Img_22', '图卡22'),
+      generatePlaceholder('Img_23', '图卡23')
+    ],
     activity: '美术手工',
     selected: false,
   },
@@ -289,6 +289,7 @@ type Folder = {
   parentId: string | null;
   cardIds: number[];
   isSystem?: boolean;
+  creator?: string;
 };
 
 export default function GraphicLibraryV2() {
@@ -296,33 +297,37 @@ export default function GraphicLibraryV2() {
   const [cards, setCards] = useState(mockCards);
   const [selectAll, setSelectAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchTags, setSearchTags] = useState<{id: string, type: 'lesson' | 'activity', label: string}[]>([]);
+  const [searchTags, setSearchTags] = useState<{ id: string, type: 'lesson' | 'activity', label: string }[]>([]);
   const [appliedSearchQuery, setAppliedSearchQuery] = useState('');
-  const [appliedSearchTags, setAppliedSearchTags] = useState<{id: string, type: 'lesson' | 'activity', label: string}[]>([]);
+  const [appliedSearchTags, setAppliedSearchTags] = useState<{ id: string, type: 'lesson' | 'activity', label: string }[]>([]);
   const [isSmartSearchOpen, setIsSmartSearchOpen] = useState(false);
   const [isFoldersOpen, setIsFoldersOpen] = useState(true);
+  const [isMyCardsOpen, setIsMyCardsOpen] = useState(true);
   const [folders, setFolders] = useState<Folder[]>([
     // 用户自定义文件夹
-    { id: 'usr_1', name: '自然主题图卡', parentId: null, cardIds: [14, 15, 17] },
-    { id: 'usr_2', name: '日常课件素材', parentId: null, cardIds: [18, 19, 21, 22] },
+    { id: 'usr_1', name: '自然主题图卡', parentId: null, cardIds: [14, 15, 17], creator: '胡晓涛' },
+    { id: 'usr_2', name: '日常课件素材', parentId: null, cardIds: [18, 19, 21, 22], creator: '胡晓涛' },
 
     // Level 1: 基础认知层
     { id: 'sys_1', name: '基础认知层', parentId: null, cardIds: [], isSystem: true },
     { id: 'sys_1_1', name: '常见食物', parentId: 'sys_1', cardIds: [1], isSystem: true },
     { id: 'sys_1_2', name: '居家生活', parentId: 'sys_1', cardIds: [2, 16], isSystem: true },
     { id: 'sys_1_3', name: '身体感官', parentId: 'sys_1', cardIds: [5], isSystem: true },
-    
+
     // Level 1: 核心功能层
     { id: 'sys_2', name: '核心功能层', parentId: null, cardIds: [], isSystem: true },
     { id: 'sys_2_1', name: '日常动作', parentId: 'sys_2', cardIds: [3, 8, 20], isSystem: true },
     { id: 'sys_2_2', name: '生理调节', parentId: 'sys_2', cardIds: [9], isSystem: true },
     { id: 'sys_2_3', name: '数量逻辑', parentId: 'sys_2', cardIds: [6], isSystem: true },
-    
+
     // Level 1: 社会化层
     { id: 'sys_3', name: '社会化层', parentId: null, cardIds: [], isSystem: true },
     { id: 'sys_3_1', name: '场景社交', parentId: 'sys_3', cardIds: [4, 10], isSystem: true },
     { id: 'sys_3_2', name: '需求表达', parentId: 'sys_3', cardIds: [11], isSystem: true },
     { id: 'sys_3_3', name: '事务关系', parentId: 'sys_3', cardIds: [7, 12, 13], isSystem: true },
+
+    // 系统内置分类 - 校区
+    { id: 'sys_campus', name: '校区图卡', parentId: null, cardIds: [], isSystem: true },
   ]);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
@@ -331,11 +336,11 @@ export default function GraphicLibraryV2() {
   const [activeFolderMenuId, setActiveFolderMenuId] = useState<string | null>(null);
   const [renameFolderId, setRenameFolderId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
-  const [cardContextMenu, setCardContextMenu] = useState<{x: number, y: number, cardId: number, folderId: string} | null>(null);
+  const [cardContextMenu, setCardContextMenu] = useState<{ x: number, y: number, cardId: number, folderId: string | null } | null>(null);
   const [renameCardId, setRenameCardId] = useState<number | null>(null);
   const [renameCardValue, setRenameCardValue] = useState('');
   const [newFolderParentId, setNewFolderParentId] = useState<string | null | undefined>(undefined);
-  const [pendingMoveCard, setPendingMoveCard] = useState<{cardId: number, sourceFolderId: string} | null>(null);
+  const [pendingMoveCard, setPendingMoveCard] = useState<{ cardId: number, sourceFolderId: string } | null>(null);
 
   // Smart Search Modal States
   const [isLessonModalOpen, setIsLessonModalOpen] = useState(false);
@@ -379,12 +384,12 @@ export default function GraphicLibraryV2() {
       // Update mockDetails for modal
       generatedCards.forEach((c: any) => {
         mockCardDetails[c.id] = {
-           taskName: c.taskName,
-           description: c.description,
-           style: c.style,
-           size: c.size,
-           count: c.count,
-           siblings: c.siblings
+          taskName: c.taskName,
+          description: c.description,
+          style: c.style,
+          size: c.size,
+          count: c.count,
+          siblings: c.siblings
         };
       });
     }
@@ -399,7 +404,7 @@ export default function GraphicLibraryV2() {
     return () => window.removeEventListener('click', handleClick);
   }, []);
 
-  const openNewFolderModal = (parentId?: string | null, moveCard?: {cardId: number, sourceFolderId: string}) => {
+  const openNewFolderModal = (parentId?: string | null, moveCard?: { cardId: number, sourceFolderId: string }) => {
     setNewFolderParentId(parentId !== undefined ? parentId : currentFolderId);
     setPendingMoveCard(moveCard || null);
     setNewFolderName('');
@@ -413,9 +418,10 @@ export default function GraphicLibraryV2() {
       id: newFolderId,
       name: newFolderName.trim(),
       parentId: newFolderParentId !== undefined ? newFolderParentId : currentFolderId,
-      cardIds: pendingMoveCard ? [pendingMoveCard.cardId] : []
+      cardIds: pendingMoveCard ? [pendingMoveCard.cardId] : [],
+      creator: '胡晓涛'
     };
-    
+
     let updatedFolders = [...folders, newFolder];
     if (pendingMoveCard) {
       updatedFolders = updatedFolders.map(f => {
@@ -425,7 +431,7 @@ export default function GraphicLibraryV2() {
         return f;
       });
     }
-    
+
     setFolders(updatedFolders);
     setNewFolderName('');
     setIsNewFolderModalOpen(false);
@@ -433,7 +439,7 @@ export default function GraphicLibraryV2() {
     setNewFolderParentId(undefined);
   };
 
-  const moveCardToFolder = (cardId: number, sourceFolderId: string, targetFolderId: string) => {
+  const moveCardToFolder = (cardId: number, sourceFolderId: string | null, targetFolderId: string) => {
     setFolders(folders.map(folder => {
       let newCardIds = [...folder.cardIds];
       let changed = false;
@@ -453,10 +459,20 @@ export default function GraphicLibraryV2() {
     const folder = folders.find(f => f.id === folderId);
     if (!folder) return 0;
     const subFoldersCount = folders.filter(f => f.parentId === folderId).length;
+
+    // Dynamic count for Campus Cards (all non-system cards)
+    if (folderId === 'sys_campus') {
+      const userCardsCount = cards.filter(c => !c.isSystem).length;
+      return userCardsCount + subFoldersCount;
+    }
+
     return folder.cardIds.length + subFoldersCount;
   };
 
-  const currentFolders = folders.filter(f => f.parentId === currentFolderId).sort((a, b) => (b.isSystem ? 1 : 0) - (a.isSystem ? 1 : 0));
+  const currentFolders = folders.filter(f =>
+    f.parentId === currentFolderId &&
+    (f.isSystem || f.creator === '胡晓涛')
+  ).sort((a, b) => (b.isSystem ? 1 : 0) - (a.isSystem ? 1 : 0));
 
   const handleDragStart = (e: React.DragEvent, cardId: number, sourceFolderId?: string) => {
     e.dataTransfer.setData('cardId', cardId.toString());
@@ -503,23 +519,23 @@ export default function GraphicLibraryV2() {
     setDragOverFolderId(null);
     const cardIdStr = e.dataTransfer.getData('cardId');
     const sourceFolderId = e.dataTransfer.getData('sourceFolderId');
-    
-    if (cardIdStr) {
+
+    if (cardIdStr && targetFolderId !== 'sys_campus') {
       const cardId = parseInt(cardIdStr);
       setFolders(folders.map(f => {
         let newCardIds = [...f.cardIds];
         let changed = false;
-        
+
         if (f.id === targetFolderId && !newCardIds.includes(cardId)) {
           newCardIds.push(cardId);
           changed = true;
         }
-        
+
         if (sourceFolderId && f.id === sourceFolderId && sourceFolderId !== targetFolderId) {
           newCardIds = newCardIds.filter(id => id !== cardId);
           changed = true;
         }
-        
+
         return changed ? { ...f, cardIds: newCardIds } : f;
       }));
     }
@@ -527,9 +543,9 @@ export default function GraphicLibraryV2() {
 
   const filteredCards = cards.filter(card => {
     if (appliedSearchTags.length === 0 && !appliedSearchQuery) return true;
-    
+
     let isMatch = true;
-    
+
     // Mock smart recommendation logic based on tags
     for (const tag of appliedSearchTags) {
       if (tag.type === 'lesson' && tag.label === '认识水果') {
@@ -539,13 +555,13 @@ export default function GraphicLibraryV2() {
         if (!(card.activity.includes('运动') || card.title.includes('篮球'))) isMatch = false;
       }
     }
-    
+
     // Normal search
     if (appliedSearchQuery) {
       const query = appliedSearchQuery.toLowerCase();
-      const matchesText = card.title.toLowerCase().includes(query) || 
-             card.activity.toLowerCase().includes(query) || 
-             card.creator.toLowerCase().includes(query);
+      const matchesText = card.title.toLowerCase().includes(query) ||
+        card.activity.toLowerCase().includes(query) ||
+        card.creator.toLowerCase().includes(query);
       if (!matchesText) isMatch = false;
     }
 
@@ -561,9 +577,9 @@ export default function GraphicLibraryV2() {
   const toggleSelectAll = () => {
     const newSelectAll = !selectAll;
     setSelectAll(newSelectAll);
-    
+
     const filteredIds = new Set(filteredCards.map(c => c.id));
-    setCards(cards.map(c => 
+    setCards(cards.map(c =>
       filteredIds.has(c.id) ? { ...c, selected: newSelectAll } : c
     ));
   };
@@ -578,16 +594,16 @@ export default function GraphicLibraryV2() {
     const isActionRestricted = isSystemCardRecord && (isSystemFolder || !folderId);
 
     return (
-      <div 
-        key={card.id} 
+      <div
+        key={card.id}
         className="relative group cursor-pointer"
         onClick={() => setSelectedDetailCard(card)}
         draggable
         onDragStart={(e) => handleDragStart(e, card.id, folderId || undefined)}
         onContextMenu={(e) => {
-          if (folderId && !isActionRestricted) {
+          if (!isActionRestricted) {
             e.preventDefault();
-            setCardContextMenu({ x: e.clientX, y: e.clientY, cardId: card.id, folderId });
+            setCardContextMenu({ x: e.clientX, y: e.clientY, cardId: card.id, folderId: folderId || null });
           }
         }}
       >
@@ -596,15 +612,15 @@ export default function GraphicLibraryV2() {
           "relative rounded-xl overflow-hidden border-2 transition-all aspect-square group-hover:rounded-b-none",
           card.selected ? "border-[#135c4a]" : "border-transparent group-hover:border-slate-200"
         )}>
-          <img 
-            src={card.imageUrl} 
-            alt={card.title} 
+          <img
+            src={card.imageUrl}
+            alt={card.title}
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
-          
+
           {/* Top Left Checkbox */}
-          <div 
+          <div
             className={cn(
               "absolute top-2 left-2 z-10",
               card.selected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
@@ -628,7 +644,7 @@ export default function GraphicLibraryV2() {
         </div>
 
         {/* Hover Overlay (Below Image) */}
-        <div 
+        <div
           className={cn(
             "absolute top-full left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none group-hover:pointer-events-auto",
             "bg-black/80 backdrop-blur-md rounded-b-xl p-3 flex flex-col gap-3",
@@ -657,8 +673,18 @@ export default function GraphicLibraryV2() {
             <button className="flex items-center gap-1 text-[11px] hover:text-white transition-colors" onClick={(e) => e.stopPropagation()}>
               <Printer className="w-3 h-3" /> 打印
             </button>
-            {!isActionRestricted && !folderId && (
-              <button className="flex items-center gap-1 text-[11px] hover:text-red-400 transition-colors" onClick={(e) => { e.stopPropagation(); handleDeleteCards([card.id]); }}>
+            {!isActionRestricted && (
+              <button
+                className="flex items-center gap-1 text-[11px] hover:text-red-400 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (folderId) {
+                    setFolders(folders.map(f => f.id === folderId ? { ...f, cardIds: f.cardIds.filter(id => id !== card.id) } : f));
+                  } else {
+                    handleDeleteCards([card.id]);
+                  }
+                }}
+              >
                 <Trash2 className="w-3 h-3" /> 删除
               </button>
             )}
@@ -671,9 +697,9 @@ export default function GraphicLibraryV2() {
   const renderFolder = (folder: Folder) => {
     const firstCardId = folder.cardIds[0];
     const firstCard = cards.find(c => c.id === firstCardId);
-    
+
     return (
-      <div 
+      <div
         key={folder.id}
         onClick={() => setCurrentFolderId(folder.id)}
         className={cn(
@@ -686,7 +712,7 @@ export default function GraphicLibraryV2() {
       >
         <div className={cn(
           "flex-1 flex items-center justify-center transition-colors relative overflow-hidden rounded-t-[11px]",
-          dragOverFolderId === folder.id ? "bg-emerald-50/50" : "bg-slate-100"
+          dragOverFolderId === folder.id && folder.id !== 'sys_campus' ? "bg-emerald-50/50" : "bg-slate-100"
         )}>
           {folder.isSystem ? (
             <div className="w-full h-full relative flex items-center justify-center bg-gradient-to-br from-emerald-600 via-[#135c4a] to-slate-900 group-hover:scale-105 transition-transform duration-500">
@@ -733,35 +759,35 @@ export default function GraphicLibraryV2() {
             )}
           </div>
           {!folder.isSystem && (
-            <button 
-              className="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-100" 
-              onClick={(e) => { 
-                e.stopPropagation(); 
-                setActiveFolderMenuId(activeFolderMenuId === folder.id ? null : folder.id); 
+            <button
+              className="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveFolderMenuId(activeFolderMenuId === folder.id ? null : folder.id);
               }}
             >
               <MoreHorizontal className="w-4 h-4" />
             </button>
           )}
-          
+
           {activeFolderMenuId === folder.id && (
             <div className="absolute right-2 top-full mt-1 w-28 bg-white rounded-lg shadow-lg border border-slate-100 py-1 z-30">
-              <button 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  setRenameFolderId(folder.id); 
-                  setRenameValue(folder.name); 
-                  setActiveFolderMenuId(null); 
-                }} 
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setRenameFolderId(folder.id);
+                  setRenameValue(folder.name);
+                  setActiveFolderMenuId(null);
+                }}
                 className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-[#135c4a] transition-colors"
               >
                 重命名
               </button>
-              <button 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  handleDeleteFolder(folder.id); 
-                }} 
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteFolder(folder.id);
+                }}
                 className="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
               >
                 删除
@@ -773,8 +799,12 @@ export default function GraphicLibraryV2() {
     );
   };
 
-  const folderCards = currentFolderId ? filteredCards.filter(c => folders.find(f => f.id === currentFolderId)?.cardIds.includes(c.id)).sort((a, b) => (b.isSystem ? 1 : 0) - (a.isSystem ? 1 : 0)) : [];
-  const unclassifiedCards = filteredCards.filter(c => !folders.some(f => f.cardIds.includes(c.id))).sort((a, b) => (b.isSystem ? 1 : 0) - (a.isSystem ? 1 : 0));
+  const folderCards = currentFolderId ? (
+    currentFolderId === 'sys_campus'
+      ? filteredCards.filter(c => !c.isSystem)
+      : filteredCards.filter(c => folders.find(f => f.id === currentFolderId)?.cardIds.includes(c.id))
+  ).sort((a, b) => b.id - a.id) : [];
+  const unclassifiedCards = filteredCards.filter(c => !c.isSystem).sort((a, b) => b.id - a.id);
 
   const getBreadcrumbs = () => {
     const crumbs = [];
@@ -793,7 +823,11 @@ export default function GraphicLibraryV2() {
   const breadcrumbs = getBreadcrumbs();
 
   function ContextMenuFolderList({ parentId }: { parentId: string | null }) {
-    const childFolders = folders.filter(f => f.parentId === parentId);
+    const childFolders = folders.filter(f =>
+      f.parentId === parentId &&
+      f.id !== 'sys_campus' &&
+      (f.isSystem || f.creator === '胡晓涛')
+    );
     return (
       <div className="absolute left-full top-0 w-40 bg-white rounded-lg shadow-xl border border-slate-100 py-1 z-50 -ml-1">
         {childFolders.map(f => (
@@ -810,7 +844,7 @@ export default function GraphicLibraryV2() {
             }
           }}
         >
-          <Plus className="w-4 h-4" /> 新建文件夹
+          <Plus className="w-4 h-4" /> 新建分类
         </button>
       </div>
     );
@@ -819,7 +853,7 @@ export default function GraphicLibraryV2() {
   function ContextMenuItem({ folder }: { folder: Folder; key?: React.Key }) {
     const [isHovered, setIsHovered] = useState(false);
     return (
-      <div 
+      <div
         className="relative"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -849,7 +883,7 @@ export default function GraphicLibraryV2() {
         <div className="flex items-center gap-6">
           <h1 className="text-xl font-bold text-slate-800 tracking-tight">图卡库</h1>
           <div className="h-6 w-px bg-slate-200" />
-          <button 
+          <button
             onClick={() => navigate('/ai-generation')}
             className="flex items-center gap-2 px-4 py-2 bg-[#135c4a] text-white rounded-full hover:bg-[#0f4a3b] transition-all shadow-sm hover:shadow-md text-sm font-semibold active:scale-95"
           >
@@ -857,9 +891,9 @@ export default function GraphicLibraryV2() {
             AI生成图卡
           </button>
         </div>
-        
+
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={() => {
               if (isSmartSearchOpen) {
                 // Exit logic
@@ -876,8 +910,8 @@ export default function GraphicLibraryV2() {
             }}
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-semibold text-sm border-2",
-              isSmartSearchOpen 
-                ? "bg-slate-800 border-slate-800 text-white shadow-lg" 
+              isSmartSearchOpen
+                ? "bg-slate-800 border-slate-800 text-white shadow-lg"
                 : "bg-emerald-50 border-emerald-100 text-[#135c4a] hover:bg-emerald-100 hover:border-emerald-200"
             )}
           >
@@ -897,10 +931,9 @@ export default function GraphicLibraryV2() {
       </div>
 
       {/* Smart Search Area - Dropdown Animation */}
-      <div 
-        className={`transition-all duration-300 ease-in-out origin-top overflow-hidden border-b border-slate-100 bg-gradient-to-b from-emerald-50/50 to-white z-10 ${
-          isSmartSearchOpen ? 'max-h-[100px] opacity-100' : 'max-h-0 opacity-0 border-transparent'
-        }`}
+      <div
+        className={`transition-all duration-300 ease-in-out origin-top overflow-hidden border-b border-slate-100 bg-gradient-to-b from-emerald-50/50 to-white z-10 ${isSmartSearchOpen ? 'max-h-[100px] opacity-100' : 'max-h-0 opacity-0 border-transparent'
+          }`}
       >
         <div className="px-6 py-4 flex items-center gap-4 relative mx-auto">
           <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 whitespace-nowrap">
@@ -921,7 +954,7 @@ export default function GraphicLibraryV2() {
                   ))}
                 </div>
               )}
-              <input 
+              <input
                 placeholder={searchTags.length === 0 ? "请描述想搜索的内容，或添加教案和活动进行搜索" : "继续输入..."}
                 className="flex-1 bg-transparent focus:outline-none text-sm text-slate-700 min-w-[200px]"
                 value={searchQuery}
@@ -937,7 +970,7 @@ export default function GraphicLibraryV2() {
               />
             </div>
             <div className="flex items-center gap-2 pr-2 h-full">
-              <button 
+              <button
                 onClick={() => setIsLessonModalOpen(true)}
                 className="h-8 px-3 flex items-center justify-center gap-1.5 rounded-full hover:bg-slate-50 text-slate-600 transition-colors text-xs font-medium"
                 title="添加教案"
@@ -945,7 +978,7 @@ export default function GraphicLibraryV2() {
                 <PlusCircle className="w-3.5 h-3.5" />
                 教案
               </button>
-              <button 
+              <button
                 onClick={() => setIsActivityModalOpen(true)}
                 className="h-8 px-3 flex items-center justify-center gap-1.5 rounded-full hover:bg-slate-50 text-slate-600 transition-colors text-xs font-medium"
                 title="添加活动"
@@ -954,7 +987,7 @@ export default function GraphicLibraryV2() {
                 活动
               </button>
               <div className="w-px h-6 bg-slate-200 mx-1"></div>
-              <button 
+              <button
                 onClick={() => {
                   setAppliedSearchQuery(searchQuery);
                   setAppliedSearchTags(searchTags);
@@ -971,53 +1004,64 @@ export default function GraphicLibraryV2() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto flex flex-col">
+      <div className="flex-1 overflow-y-auto flex flex-col pb-16">
         {currentFolderId === null ? (
           <>
             <div className="px-6 pt-6 flex flex-col gap-8">
               {/* Folders Section */}
-              <div>
-                <div className="flex items-center gap-2 mb-4 text-sm font-medium text-slate-900">
-                  <button 
-                    onClick={() => setIsFoldersOpen(!isFoldersOpen)}
-                    className="flex items-center gap-2 hover:text-[#135c4a] transition-colors group"
-                  >
-                    <div className={`transition-transform duration-200 ${isFoldersOpen ? 'rotate-90' : ''}`}>
-                      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#135c4a]" />
-                    </div>
-                  </button>
-                  
-                  <div className="flex items-center gap-1">
-                    <button 
-                      onClick={() => setCurrentFolderId(null)}
-                      className="hover:text-[#135c4a] transition-colors text-slate-900"
+              {!(appliedSearchQuery || appliedSearchTags.length > 0) && (
+                <div>
+                  <div className="flex items-center gap-2 mb-4 text-sm font-medium text-slate-900">
+                    <button
+                      onClick={() => setIsFoldersOpen(!isFoldersOpen)}
+                      className="flex items-center gap-2 hover:text-[#135c4a] transition-colors group"
                     >
-                      文件夹
+                      <div className={`transition-transform duration-200 ${isFoldersOpen ? 'rotate-90' : ''}`}>
+                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#135c4a]" />
+                      </div>
                     </button>
-                    <span className="text-slate-400 ml-1">({currentFolders.length})</span>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setCurrentFolderId(null)}
+                        className="hover:text-[#135c4a] transition-colors text-slate-900"
+                      >
+                        图卡分类
+                      </button>
+                      <span className="text-slate-400 ml-1">({currentFolders.length})</span>
+                    </div>
+                  </div>
+
+                  <div className={cn(
+                    "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 transition-all duration-300 origin-top",
+                    isFoldersOpen ? "max-h-[2000px] opacity-100 overflow-visible" : "max-h-0 opacity-0 overflow-hidden"
+                  )}>
+                    {/* New Folder */}
+                    <button
+                      onClick={() => openNewFolderModal()}
+                      className="aspect-square flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-colors text-slate-600"
+                    >
+                      <Plus className="w-6 h-6" />
+                      <span className="text-sm font-medium">新建分类</span>
+                    </button>
+                    {currentFolders.map(folder => renderFolder(folder))}
                   </div>
                 </div>
-                
-                <div className={`grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 transition-all duration-300 origin-top ${
-                  isFoldersOpen ? 'max-h-[2000px] opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden'
-                }`}>
-                  {/* New Folder */}
-                  <button 
-                    onClick={() => openNewFolderModal()}
-                    className="aspect-square flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-colors text-slate-600"
-                  >
-                    <Plus className="w-6 h-6" />
-                    <span className="text-sm font-medium">新建文件夹</span>
-                  </button>
-                  {currentFolders.map(folder => renderFolder(folder))}
-                </div>
-              </div>
+              )}
 
-              {/* Unclassified Works Section Title */}
+              {/* My Cards Section Title */}
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium text-slate-900">
-                    {appliedSearchQuery || appliedSearchTags.length > 0 ? '搜索结果' : '未分类图卡'}
+                  <div className="flex items-center gap-2 text-sm font-medium text-slate-900">
+                    <button
+                      onClick={() => setIsMyCardsOpen(!isMyCardsOpen)}
+                      className="flex items-center gap-2 hover:text-[#135c4a] transition-colors group"
+                    >
+                      <div className={`transition-transform duration-200 ${isMyCardsOpen ? 'rotate-90' : ''}`}>
+                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#135c4a]" />
+                      </div>
+                    </button>
+                    <span>{appliedSearchQuery || appliedSearchTags.length > 0 ? '搜索结果' : '我的图卡'}</span>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-3">
@@ -1033,94 +1077,62 @@ export default function GraphicLibraryV2() {
                   </div>
                 </div>
 
-                {/* Bulk Actions Bar */}
-                <div className="flex items-center justify-between bg-white border border-slate-100 rounded-lg p-3 shadow-sm">
-                  <div className="flex items-center gap-4">
-                    <button 
-                      onClick={toggleSelectAll}
-                      className={cn(
-                        "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
-                        selectAll 
-                          ? "bg-[#135c4a] text-white" 
-                          : "bg-emerald-50 text-[#135c4a] hover:bg-emerald-100"
-                      )}
-                    >
-                      全选
-                    </button>
-                    <span className="text-sm text-slate-400">已选{selectedCount}项</span>
+                {/* Collapsible Content */}
+                <div className={cn(
+                  "transition-all duration-300 origin-top",
+                  isMyCardsOpen ? "max-h-[10000px] opacity-100 mt-4 overflow-visible" : "max-h-0 opacity-0 overflow-hidden"
+                )}>
+                  {/* Bulk Actions Bar */}
+                  <div className="flex items-center justify-between bg-white border border-slate-100 rounded-lg p-3 shadow-sm mb-4">
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={toggleSelectAll}
+                        className={cn(
+                          "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
+                          selectAll
+                            ? "bg-[#135c4a] text-white"
+                            : "bg-emerald-50 text-[#135c4a] hover:bg-emerald-100"
+                        )}
+                      >
+                        全选
+                      </button>
+                      <span className="text-sm text-slate-400">已选{selectedCount}项</span>
+                    </div>
+
+                    {selectedCount > 0 && (
+                      <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
+                        <button className="px-4 py-1.5 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium">
+                          批量打印
+                        </button>
+                        <button className="px-4 py-1.5 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium">
+                          批量下载
+                        </button>
+                        <button onClick={() => handleDeleteCards(cards.filter(c => c.selected).map(c => c.id))} className="px-4 py-1.5 bg-red-50 text-red-500 rounded-md hover:bg-red-100 transition-colors text-sm font-medium">
+                          批量删除
+                        </button>
+                        <button
+                          onClick={() => setCards(cards.map(c => ({ ...c, selected: false })))}
+                          className="px-4 py-1.5 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium"
+                        >
+                          取消选择
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  {selectedCount > 0 && (
-                    <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
-                      <button className="px-4 py-1.5 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium">
-                        批量打印
-                      </button>
-                      <button className="px-4 py-1.5 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium">
-                        批量下载
-                      </button>
-                      <button onClick={() => handleDeleteCards(cards.filter(c => c.selected).map(c => c.id))} className="px-4 py-1.5 bg-red-50 text-red-500 rounded-md hover:bg-red-100 transition-colors text-sm font-medium">
-                        批量删除
-                      </button>
-                      <button 
-                        onClick={() => setCards(cards.map(c => ({ ...c, selected: false })))}
-                        className="px-4 py-1.5 bg-emerald-50 text-[#135c4a] rounded-md hover:bg-emerald-100 transition-colors text-sm font-medium"
-                      >
-                        取消选择
-                      </button>
+                  {/* Grid */}
+                  <div className="pt-2">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7 gap-4">
+                      {(appliedSearchQuery || appliedSearchTags.length > 0 ? filteredCards : unclassifiedCards).map((card) => renderCard(card, null))}
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Grid */}
-            <div className="px-6 pb-6 pt-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7 gap-4">
-                {(appliedSearchQuery || appliedSearchTags.length > 0 ? filteredCards : unclassifiedCards).map((card) => renderCard(card, null))}
-              </div>
-            </div>
-
-            {/* Pagination */}
-            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-center gap-4 text-sm text-slate-600">
-              <span>共 {appliedSearchQuery || appliedSearchTags.length > 0 ? filteredCards.length : unclassifiedCards.length} 条</span>
-              <div className="relative">
-                <select className="appearance-none bg-white border border-slate-200 rounded px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-[#135c4a]">
-                  <option>10条/页</option>
-                  <option>20条/页</option>
-                  <option>50条/页</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-              </div>
-              
-              <div className="flex items-center gap-1">
-                <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-400 disabled:opacity-50">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100">1</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded text-[#135c4a] font-medium">2</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100">3</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100">4</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100">5</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100">6</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span>前往</span>
-                <div className="relative">
-                  <select className="appearance-none bg-white border border-slate-200 rounded px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-[#135c4a]">
-                    <option>10</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                </div>
-                <span>页</span>
-              </div>
-            </div>
           </>
         ) : (
-          <div className="flex flex-col h-full bg-slate-50/50">
+          <div className="flex flex-col h-full bg-slate-50/50 pb-10">
             {/* Folder Header */}
             <div className="px-6 py-4 flex items-center justify-between bg-white border-b border-slate-100 sticky top-0 z-10">
               <div className="flex items-center gap-2 text-lg">
@@ -1130,7 +1142,7 @@ export default function GraphicLibraryV2() {
                 {breadcrumbs.map((crumb, index) => (
                   <React.Fragment key={crumb.id}>
                     <ChevronRight className="w-5 h-5 text-slate-400" />
-                    <button 
+                    <button
                       onClick={() => setCurrentFolderId(crumb.id)}
                       className={cn("transition-colors font-bold", index === breadcrumbs.length - 1 ? "text-slate-800" : "text-slate-500 hover:text-[#135c4a]")}
                     >
@@ -1146,17 +1158,17 @@ export default function GraphicLibraryV2() {
               <div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7 gap-4">
                   {/* New Folder Button */}
-                  <button 
+                  <button
                     onClick={() => setIsNewFolderModalOpen(true)}
                     className="relative rounded-xl overflow-hidden border-2 border-dashed border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all aspect-square flex flex-col items-center justify-center gap-2 text-slate-600"
                   >
                     <Plus className="w-8 h-8" />
-                    <span className="text-sm font-medium">新建文件夹</span>
+                    <span className="text-sm font-medium">新建分类</span>
                   </button>
-                  
+
                   {/* Subfolders */}
                   {currentFolders.map(folder => renderFolder(folder))}
-                  
+
                   {/* Cards */}
                   {folderCards.map((card) => renderCard(card, currentFolderId))}
                 </div>
@@ -1171,16 +1183,16 @@ export default function GraphicLibraryV2() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl w-[400px] p-6 text-slate-900 shadow-xl border border-slate-100">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-slate-900">新建文件夹</h3>
+              <h3 className="text-xl font-bold text-slate-900">新建分类</h3>
               <button onClick={() => setIsNewFolderModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-700 mb-2">文件夹名称</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">分类名称</label>
               <div className="relative">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   maxLength={20}
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
@@ -1193,13 +1205,13 @@ export default function GraphicLibraryV2() {
               </div>
             </div>
             <div className="flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setIsNewFolderModalOpen(false)}
                 className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
               >
                 取消
               </button>
-              <button 
+              <button
                 onClick={handleCreateFolder}
                 className="px-4 py-2 rounded-lg bg-[#135c4a] text-white text-sm font-medium hover:bg-[#135c4a]/90 transition-colors"
               >
@@ -1215,16 +1227,16 @@ export default function GraphicLibraryV2() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl w-[400px] p-6 text-slate-900 shadow-xl border border-slate-100">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-slate-900">重命名文件夹</h3>
+              <h3 className="text-xl font-bold text-slate-900">重命名分类</h3>
               <button onClick={() => setRenameFolderId(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-700 mb-2">文件夹名称</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">分类名称</label>
               <div className="relative">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   maxLength={20}
                   value={renameValue}
                   onChange={(e) => setRenameValue(e.target.value)}
@@ -1237,13 +1249,13 @@ export default function GraphicLibraryV2() {
               </div>
             </div>
             <div className="flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setRenameFolderId(null)}
                 className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
               >
                 取消
               </button>
-              <button 
+              <button
                 onClick={() => {
                   if (renameValue.trim()) {
                     setFolders(folders.map(f => f.id === renameFolderId ? { ...f, name: renameValue.trim() } : f));
@@ -1261,13 +1273,13 @@ export default function GraphicLibraryV2() {
 
       {/* Card Context Menu */}
       {cardContextMenu && (
-        <div 
+        <div
           className="fixed z-50 bg-white rounded-lg shadow-xl border border-slate-100 py-1 w-40"
           style={{ top: cardContextMenu.y, left: cardContextMenu.x }}
         >
-          
-          
-          <div 
+
+
+          <div
             className="relative"
             onMouseEnter={(e) => {
               const child = e.currentTarget.querySelector(':scope > .nested-menu');
@@ -1278,7 +1290,7 @@ export default function GraphicLibraryV2() {
               if (child) child.classList.add('hidden');
             }}
           >
-            <button 
+            <button
               className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-[#135c4a] transition-colors flex justify-between items-center"
               onClick={(e) => e.stopPropagation()}
             >
@@ -1289,21 +1301,6 @@ export default function GraphicLibraryV2() {
               <ContextMenuFolderList parentId={null} />
             </div>
           </div>
-
-          <button 
-            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              setFolders(folders.map(f => 
-                f.id === cardContextMenu.folderId 
-                  ? { ...f, cardIds: f.cardIds.filter(id => id !== cardContextMenu.cardId) } 
-                  : f
-              ));
-              setCardContextMenu(null);
-            }}
-          >
-            从文件夹移除
-          </button>
         </div>
       )}
 
@@ -1320,18 +1317,18 @@ export default function GraphicLibraryV2() {
                 <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
-            
+
             <div className="relative mb-4">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="搜索教案名称..."
                 value={lessonSearchText}
                 onChange={(e) => setLessonSearchText(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#135c4a] transition-all"
               />
             </div>
-            
+
             <div className="flex-1 overflow-y-auto pr-1 space-y-1 mb-6">
               {mockLessons.filter(l => l.title.includes(lessonSearchText)).map(lesson => (
                 <button
@@ -1369,18 +1366,18 @@ export default function GraphicLibraryV2() {
                 <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
-            
+
             <div className="relative mb-4">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="搜索活动名称..."
                 value={activitySearchText}
                 onChange={(e) => setActivitySearchText(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all"
               />
             </div>
-            
+
             <div className="flex-1 overflow-y-auto pr-1 space-y-1 mb-6">
               {mockActivities.filter(a => a.title.includes(activitySearchText)).map(activity => (
                 <button
@@ -1410,15 +1407,15 @@ export default function GraphicLibraryV2() {
           <div className="bg-white w-[90vw] max-w-6xl h-[85vh] rounded-3xl overflow-hidden flex shadow-2xl animate-in zoom-in-95 duration-300">
             {/* Left: Image Viewer */}
             <div className="flex-1 bg-slate-900 relative flex items-center justify-center group/viewer">
-              <img 
-                src={currentDetailImage || selectedDetailCard.imageUrl} 
+              <img
+                src={currentDetailImage || selectedDetailCard.imageUrl}
                 className="max-w-full max-h-full object-contain"
                 alt="Preview"
                 referrerPolicy="no-referrer"
               />
-              
+
               {/* Close Button */}
-              <button 
+              <button
                 onClick={() => { setSelectedDetailCard(null); setCurrentDetailImage(null); }}
                 className="absolute top-6 left-6 p-2.5 bg-black/20 hover:bg-black/40 text-white rounded-xl backdrop-blur-md transition-all"
               >
@@ -1434,8 +1431,8 @@ export default function GraphicLibraryV2() {
                   </button>
                   {!selectedDetailCard.isSystem && (
                     <>
-                      <div className="w-px h-8 bg-white/20 mx-2"></div>
-                      <button className="flex flex-col items-center gap-1.5 hover:text-red-400 transition-colors" onClick={(e) => { e.stopPropagation(); }}>
+                      <div className="w-px h-10 bg-white/20 mx-2"></div>
+                      <button className="flex flex-col items-center gap-1.5 hover:text-red-400 transition-colors" onClick={(e) => { e.stopPropagation(); handleDeleteCards([selectedDetailCard.id]); setSelectedDetailCard(null); }}>
                         <Trash2 className="w-5 h-5" />
                         <span className="text-xs font-medium">删除</span>
                       </button>
@@ -1447,81 +1444,84 @@ export default function GraphicLibraryV2() {
 
             {/* Right: Info Panel */}
             {!(selectedDetailCard.isUpload || selectedDetailCard.isSystem) && (
-            <div className="w-[400px] flex flex-col bg-white border-l border-slate-100">
-              <div className="p-6 flex items-center justify-end border-b border-slate-50 h-16">
-                {/* Removed MoreHorizontal button */}
-              </div>
+              <div className="w-[400px] flex flex-col bg-white border-l border-slate-100">
+                <div className="p-6 flex items-center justify-end border-b border-slate-50 h-16">
+                  {/* Removed MoreHorizontal button */}
+                </div>
 
-              <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar-light">
-                {/* Sibling List */}
-                {false && (
-                  <div className="grid grid-cols-4 gap-2">
-                     {mockCardDetails[selectedDetailCard.id].siblings.map((img: string, idx: number) => (
-                       <div 
-                         key={idx} 
-                         onClick={() => setCurrentDetailImage(img)}
-                         className={cn(
-                           "aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all",
-                           (currentDetailImage === img || (!currentDetailImage && selectedDetailCard.imageUrl === img)) ? "border-[#135c4a] ring-2 ring-[#135c4a]/10" : "border-transparent opacity-60 hover:opacity-100"
-                         )}
-                       >
-                         <img src={img} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                       </div>
-                     ))}
-                  </div>
-                )}
+                <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar-light">
+                  {/* Sibling List */}
+                  {false && (
+                    <div className="grid grid-cols-4 gap-2">
+                      {mockCardDetails[selectedDetailCard.id].siblings.map((img: string, idx: number) => (
+                        <div
+                          key={idx}
+                          onClick={() => setCurrentDetailImage(img)}
+                          className={cn(
+                            "aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all",
+                            (currentDetailImage === img || (!currentDetailImage && selectedDetailCard.imageUrl === img)) ? "border-[#135c4a] ring-2 ring-[#135c4a]/10" : "border-transparent opacity-60 hover:opacity-100"
+                          )}
+                        >
+                          <img src={img} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
-                {/* Task Info */}
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">任务名称</h4>
-                    <p className="text-lg font-bold text-slate-800">{mockCardDetails[selectedDetailCard.id]?.taskName || selectedDetailCard.title}</p>
-                  </div>
+                  {/* Task Info */}
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">任务名称</h4>
+                      <p className="text-lg font-bold text-slate-800">{mockCardDetails[selectedDetailCard.id]?.taskName || selectedDetailCard.title}</p>
+                    </div>
 
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">画面描述</h4>
-                    <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                      {mockCardDetails[selectedDetailCard.id]?.description || '暂无描述信息'}
-                    </p>
-                  </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">画面描述</h4>
+                      <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        {mockCardDetails[selectedDetailCard.id]?.description || '暂无描述信息'}
+                      </p>
+                    </div>
 
-                  {/* Metadata Tags */}
-                  <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-medium text-slate-500">
-                    <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.style || '默认风格'}</span>
-                    <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.size || '1:1'}</span>
-                    <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.count || '1张'}</span>
-                    <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.chinese || '中文'}</span>
-                    <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.english || 'English'}</span>
+                    {/* Metadata Tags */}
+                    <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-medium text-slate-500">
+                      <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.style || '默认风格'}</span>
+                      <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.size || '1:1'}</span>
+                      <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.count || '1张'}</span>
+                      <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.chinese || '中文'}</span>
+                      <span className="px-2 py-1 bg-slate-100 rounded">{mockCardDetails[selectedDetailCard.id]?.english || 'English'}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Action Footer */}
-              <div className="p-6 bg-slate-50 grid grid-cols-3 gap-3">
-                 <button 
-                   onClick={() => {
-                     const reuseTask = mockCardDetails[selectedDetailCard.id] || {
-                       title: selectedDetailCard.title,
-                       description: selectedDetailCard.activity
-                     };
-                     navigate('/ai-generation', { state: { reuseTask } });
-                     setSelectedDetailCard(null);
-                   }}
-                   className="flex items-center justify-center gap-2 py-3 bg-white border border-emerald-100 text-[#135c4a] rounded-2xl font-bold text-sm hover:bg-emerald-50 transition-all active:scale-95 shadow-sm"
-                 >
-                   <RefreshCw className="w-4 h-4" />
-                   复用
-                 </button>
-                 <button className="flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold text-sm hover:bg-white shadow-sm transition-all active:scale-95">
-                   <Download className="w-4 h-4" />
-                   下载
-                 </button>
-                 <button className="flex items-center justify-center gap-2 py-3 bg-white border border-red-100 text-red-500 rounded-2xl font-bold text-sm hover:bg-red-50 transition-all active:scale-95">
-                   <Trash2 className="w-4 h-4" />
-                   删除
-                 </button>
+                {/* Action Footer */}
+                <div className="p-6 bg-slate-50 grid grid-cols-3 gap-3">
+                  <button
+                    onClick={() => {
+                      const reuseTask = mockCardDetails[selectedDetailCard.id] || {
+                        title: selectedDetailCard.title,
+                        description: selectedDetailCard.activity
+                      };
+                      navigate('/ai-generation', { state: { reuseTask } });
+                      setSelectedDetailCard(null);
+                    }}
+                    className="flex items-center justify-center gap-2 py-3 bg-white border border-emerald-100 text-[#135c4a] rounded-2xl font-bold text-sm hover:bg-emerald-50 transition-all active:scale-95 shadow-sm"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    复用
+                  </button>
+                  <button className="flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold text-sm hover:bg-white shadow-sm transition-all active:scale-95">
+                    <Download className="w-4 h-4" />
+                    下载
+                  </button>
+                  <button
+                    onClick={() => { handleDeleteCards([selectedDetailCard.id]); setSelectedDetailCard(null); }}
+                    className="flex items-center justify-center gap-2 py-3 bg-white border border-red-100 text-red-500 rounded-2xl font-bold text-sm hover:bg-red-50 transition-all active:scale-95"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    删除
+                  </button>
+                </div>
               </div>
-            </div>
             )}
           </div>
         </div>

@@ -43,6 +43,14 @@ const assessmentForms = [
     duration: '20分钟左右',
     action: '选择',
   },
+  {
+    id: 6,
+    name: '构音语音能力评估表',
+    shortName: '构音',
+    ageRange: '3岁~6岁',
+    duration: '30分钟左右',
+    action: '选择',
+  },
 ];
 
 export default function NewAssessment() {
@@ -55,7 +63,7 @@ export default function NewAssessment() {
           <h1 className="text-2xl font-bold text-slate-800">新建评估表</h1>
           <p className="text-slate-500 mt-2">请选择需要使用的评估方法</p>
         </div>
-        <button 
+        <button
           onClick={() => navigate('/assessment-history')}
           className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium text-sm shadow-sm"
         >
@@ -74,7 +82,7 @@ export default function NewAssessment() {
               <h3 className="text-lg font-semibold text-slate-800 mb-4 line-clamp-2">
                 {form.name}
               </h3>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center text-sm">
                   <span className="text-slate-500 w-20">简称：</span>
@@ -92,7 +100,7 @@ export default function NewAssessment() {
             </div>
 
             <div className="mt-6 pt-4 border-t border-slate-100 flex justify-end">
-              <button 
+              <button
                 onClick={() => navigate(`/assessment-form/${form.id}`)}
                 className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors font-medium text-sm"
               >

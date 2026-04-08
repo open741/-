@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, ArrowLeft, Search, ChevronDown, Check, X, Shield, Clock, AlertCircle, Wand2, Image as ImageIcon, LayoutGrid, Type, MoreHorizontal, Upload, Download, RefreshCw } from 'lucide-react';
+import { Sparkles, ArrowLeft, Search, ChevronDown, Check, X, Shield, Clock, AlertCircle, Wand2, Image as ImageIcon, LayoutGrid, Type, MoreHorizontal, Upload, Download, RefreshCw, Printer } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn, generatePlaceholder } from '../lib/utils';
 
@@ -98,7 +98,7 @@ export default function AiCardGeneration() {
     if (storedTasks.length > 0) {
       setTaskList(prev => {
         const existingIds = new Set(prev.map(t => t.id));
-        const uniqueNew = storedTasks.filter((t: any) => !existingIds.has(t.id));
+        const uniqueNew = storedTasks.filter((t: any) => !existingIds.has(t.id) && t.creator === '胡晓涛');
         return [...uniqueNew, ...prev];
       });
     }
@@ -258,9 +258,18 @@ export default function AiCardGeneration() {
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-[#135c4a] transition-all"
               />
             </div>
-            <select className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
-              <option>所有创建人</option>
-            </select>
+            <div className="relative">
+              <select className="appearance-none bg-white border border-emerald-600 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-600 transition-all cursor-pointer">
+                <option>全部状态</option>
+                <option>生成中</option>
+                <option>待处理</option>
+                <option>已完成</option>
+                <option>生成失败</option>
+                <option>部分成功</option>
+                <option>已取消</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-600 pointer-events-none" />
+            </div>
 
           </div>
 
@@ -288,13 +297,21 @@ export default function AiCardGeneration() {
                 </div>
 
                 {task.status === 'completed' && (
-                  <button 
-                    onClick={() => handleReuse(task)}
-                    className="absolute bottom-6 right-6 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-[#135c4a] hover:bg-emerald-50 hover:border-emerald-200 transition-all shadow-sm active:scale-95 z-10"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    复用
-                  </button>
+                  <div className="absolute bottom-6 right-6 flex items-center gap-2 z-10">
+                    <button 
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-[#135c4a] hover:bg-emerald-50 hover:border-emerald-200 transition-all shadow-sm active:scale-95"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      批量打印
+                    </button>
+                    <button 
+                      onClick={() => handleReuse(task)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-[#135c4a] hover:bg-emerald-50 hover:border-emerald-200 transition-all shadow-sm active:scale-95"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      复用
+                    </button>
+                  </div>
                 )}
 
                 <div className="flex gap-8">
@@ -334,12 +351,20 @@ export default function AiCardGeneration() {
                           )}
 
                           {task.status === 'completed' && (
-                            <button 
-                              className="absolute bottom-1.5 right-1.5 p-1.5 bg-white/90 hover:bg-white text-slate-700 rounded-lg shadow-sm border border-slate-100 transition-all active:scale-90 opacity-0 group-hover:opacity-100"
-                              title="下载图片"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                            </button>
+                            <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
+                              <button 
+                                className="p-1.5 bg-white/90 hover:bg-white text-slate-700 rounded-lg shadow-sm border border-slate-100 transition-all active:scale-90"
+                                title="打印图片"
+                              >
+                                <Printer className="w-3.5 h-3.5" />
+                              </button>
+                              <button 
+                                className="p-1.5 bg-white/90 hover:bg-white text-slate-700 rounded-lg shadow-sm border border-slate-100 transition-all active:scale-90"
+                                title="下载图片"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           )}
                         </div>
                       ))}

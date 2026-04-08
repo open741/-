@@ -8,6 +8,8 @@ import NewAssessment from './pages/NewAssessment';
 import AssessmentForm from './pages/AssessmentForm';
 import AssessmentHistory from './pages/AssessmentHistory';
 import AiCardGeneration from './pages/AiCardGeneration';
+import StudentArchive from './pages/StudentArchive';
+import AssessmentResult from './pages/AssessmentResult';
 
 // Startup migration: Clear out any old unsplash/picsum broken mock images from localStorage
 try {
@@ -32,6 +34,7 @@ function Sidebar() {
     { icon: ImageIcon, label: '图卡库v2', path: '/library-v2', match: '/library-v2' },
     { icon: ListTodo, label: '活动库', path: '/activity', match: '/activity' },
     { icon: FilePlus, label: '评估表', path: '/new-assessment', match: '/new-assessment' },
+    { icon: LayoutDashboard, label: '学员档案', path: '/student-archive', match: '/student-archive' },
   ];
 
   return (
@@ -104,6 +107,8 @@ export default function App() {
               <Route path="/assessment-form/:id" element={<AssessmentForm />} />
               <Route path="/assessment-history" element={<AssessmentHistory />} />
               <Route path="/ai-generation" element={<AiCardGeneration />} />
+              <Route path="/student-archive" element={<StudentArchive />} />
+              <Route path="/assessment-result" element={<AssessmentResult />} />
             </Routes>
           </main>
         </div>
