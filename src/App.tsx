@@ -10,6 +10,8 @@ import AssessmentHistory from './pages/AssessmentHistory';
 import AiCardGeneration from './pages/AiCardGeneration';
 import StudentArchive from './pages/StudentArchive';
 import AssessmentResult from './pages/AssessmentResult';
+import { RequirementsDrawer, FloatingRequirementsButton } from './components/RequirementsDrawer';
+import { useState } from 'react';
 
 // Startup migration: Clear out any old unsplash/picsum broken mock images from localStorage
 try {
@@ -91,11 +93,18 @@ function Topbar() {
 }
 
 export default function App() {
+  const [isRequirementsOpen, setIsRequirementsOpen] = useState(false);
+
   return (
     <Router>
-      <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+      <div className="flex h-screen bg-slate-50 overflow-hidden font-sans relative">
         <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div 
+          className={cn(
+            "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out",
+            isRequirementsOpen ? "mr-[450px]" : "mr-0"
+          )}
+        >
           <Topbar />
           <main className="flex-1 overflow-y-auto">
             <Routes>
@@ -112,6 +121,16 @@ export default function App() {
             </Routes>
           </main>
         </div>
+
+        <RequirementsDrawer 
+          isOpen={isRequirementsOpen} 
+          onClose={() => setIsRequirementsOpen(false)} 
+        />
+        
+        <FloatingRequirementsButton 
+          onClick={() => setIsRequirementsOpen(!isRequirementsOpen)} 
+          isOpen={isRequirementsOpen}
+        />
       </div>
     </Router>
   );
