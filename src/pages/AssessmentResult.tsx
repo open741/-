@@ -15,16 +15,20 @@ export default function AssessmentResult() {
 
   // Mock student data
   const student = {
-    name: '张小凡',
+    name: '陈泓楷',
     gender: '男',
-    age: '5岁2个月',
+    age: '8岁9月24天',
+    birthDate: '2017-06-17',
+    assessmentTime: '2026-04-10',
+    assessor: '孟昊天',
+    monthAge: '105.8',
     id: studentId
   };
 
   const formalItems = testItems.filter((item: any) => !item.id.includes('例'));
   const columnCount = 3;
   const itemsPerColumn = Math.ceil(formalItems.length / columnCount);
-  const columns = Array.from({ length: columnCount }, (_, i) => 
+  const columns = Array.from({ length: columnCount }, (_, i) =>
     formalItems.slice(i * itemsPerColumn, (i + 1) * itemsPerColumn)
   );
 
@@ -41,30 +45,36 @@ export default function AssessmentResult() {
 
   // Sound Contrast Data based on the uploaded image
   const contrastData = [
-    { title: '声母音位对比', items: [
-      { id: 1, label: '不送气塞音与送气塞音', score: '1 / (3对)' },
-      { id: 2, label: '送气塞擦音与不送气塞擦音', score: '0 / (3对)' },
-      { id: 3, label: '塞音与擦音', score: '0 / (2对)' },
-      { id: 4, label: '塞擦音与擦音', score: '0 / (3对)' },
-      { id: 5, label: '塞音与鼻音', score: '0 / (2对)' },
-      { id: 6, label: '擦音与无擦音', score: '0 / (11对)' },
-      { id: 7, label: '不同构音部位的送气塞音', score: '0 / (3对)' },
-      { id: 8, label: '不同构音部位的不送气塞音', score: '1 / (3对)' },
-      { id: 9, label: '舌尖前音与舌尖后音', score: '0 / (3对)' },
-    ], total: '2 / (23对)' },
-    { title: '韵母音位对比', items: [
-      { id: 10, label: '前鼻韵母与后鼻韵母', score: '0 / (3对)' },
-      { id: 11, label: '鼻韵母无鼻韵母', score: '0 / (2对)' },
-      { id: 12, label: '单元音、双元音与单元音', score: '1 / (2对)' },
-      { id: 13, label: '前元音与后元音', score: '1 / (1对)' },
-      { id: 14, label: '高元音与低元音', score: '1 / (1对)' },
-      { id: 15, label: '圆唇音与非圆唇音', score: '0 / (1对)' },
-    ], total: '3 / (10对)' },
-    { title: '声调音位对比', items: [
-      { id: 16, label: '一声与二声', score: '0 / (1对)' },
-      { id: 17, label: '一声与三声', score: '0 / (1对)' },
-      { id: 18, label: '一声与四声', score: '0 / (1对)' },
-    ], total: '0 / (3对)' }
+    {
+      title: '声母音位对比', items: [
+        { id: 1, label: '不送气塞音与送气塞音', score: '1 / (3对)' },
+        { id: 2, label: '送气塞擦音与不送气塞擦音', score: '0 / (3对)' },
+        { id: 3, label: '塞音与擦音', score: '0 / (2对)' },
+        { id: 4, label: '塞擦音与擦音', score: '0 / (3对)' },
+        { id: 5, label: '塞音与鼻音', score: '0 / (2对)' },
+        { id: 6, label: '擦音与无擦音', score: '0 / (11对)' },
+        { id: 7, label: '不同构音部位的送气塞音', score: '0 / (3对)' },
+        { id: 8, label: '不同构音部位的不送气塞音', score: '1 / (3对)' },
+        { id: 9, label: '舌尖前音与舌尖后音', score: '0 / (3对)' },
+      ], total: '2 / (23对)'
+    },
+    {
+      title: '韵母音位对比', items: [
+        { id: 10, label: '前鼻韵母与后鼻韵母', score: '0 / (3对)' },
+        { id: 11, label: '鼻韵母无鼻韵母', score: '0 / (2对)' },
+        { id: 12, label: '单元音、双元音与单元音', score: '1 / (2对)' },
+        { id: 13, label: '前元音与后元音', score: '1 / (1对)' },
+        { id: 14, label: '高元音与低元音', score: '1 / (1对)' },
+        { id: 15, label: '圆唇音与非圆唇音', score: '0 / (1对)' },
+      ], total: '3 / (10对)'
+    },
+    {
+      title: '声调音位对比', items: [
+        { id: 16, label: '一声与二声', score: '0 / (1对)' },
+        { id: 17, label: '一声与三声', score: '0 / (1对)' },
+        { id: 18, label: '一声与四声', score: '0 / (1对)' },
+      ], total: '0 / (3对)'
+    }
   ];
 
   return (
@@ -79,13 +89,10 @@ export default function AssessmentResult() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="h-6 w-px bg-slate-200" />
-          <h1 className="text-base font-bold text-slate-800">评估结果报告</h1>
+          <h1 className="text-base font-bold text-slate-800">构音语音能力评估报告</h1>
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-white text-slate-600 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95">
-            <Download className="w-4 h-4" /> 导出 PDF
-          </button>
           <button className="flex items-center gap-2 px-4 py-2 bg-[#135c4a] text-white rounded-xl font-bold hover:bg-[#0e4537] transition-all shadow-lg shadow-emerald-900/20 active:scale-95">
             <Printer className="w-4 h-4" /> 打印报告
           </button>
@@ -104,18 +111,20 @@ export default function AssessmentResult() {
                 <h2 className="text-3xl font-black text-slate-800">{student.name}</h2>
                 <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-black uppercase tracking-wider">{student.gender}</span>
               </div>
-              <div className="flex items-center gap-6 text-slate-400 font-bold text-sm">
-                <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-emerald-500/60" /> {student.age}</span>
-                <span className="flex items-center gap-2"><FileText className="w-4 h-4 text-emerald-500/60" /> 学号: {student.id}</span>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-slate-400 font-bold text-sm">
+                <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-emerald-500/60" /> 出生日期: {student.birthDate}</span>
+                <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-500/60" /> 测评年龄: {student.age}</span>
+                <span className="flex items-center gap-2"><FileText className="w-4 h-4 text-emerald-500/60" /> 月龄: {student.monthAge}</span>
+                <span className="flex items-center gap-2"><User className="w-4 h-4 text-emerald-500/60" /> 测评人员: {student.assessor}</span>
               </div>
             </div>
           </div>
-          
+
           <div className="bg-[#135c4a] rounded-[2.5rem] p-8 shadow-xl shadow-emerald-900/20 flex flex-col justify-center text-white relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:translate-x-2 transition-transform duration-700">
               <TrendingUp className="w-32 h-32" />
             </div>
-            <p className="text-emerald-200/60 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Articulation Clarity</p>
+            <p className="text-emerald-200/60 text-[10px] font-black uppercase tracking-[0.2em] mb-2">构音清晰度</p>
             <div className="flex items-baseline gap-2">
               <span className="text-5xl font-black tabular-nums">13.51</span>
               <span className="text-xl font-bold text-emerald-300">%</span>
@@ -126,8 +135,8 @@ export default function AssessmentResult() {
             <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:translate-x-2 transition-transform duration-700">
               <AlertCircle className="w-32 h-32" />
             </div>
-            <p className="text-amber-100/60 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Advice</p>
-            <p className="text-2xl font-black tracking-tight">立即干预进行治疗</p>
+            <p className="text-amber-100/60 text-[10px] font-black uppercase tracking-[0.2em] mb-2">相对年龄</p>
+            <p className="text-2xl font-black tracking-tight">3 岁</p>
           </div>
         </div>
 
@@ -135,9 +144,9 @@ export default function AssessmentResult() {
         <div className="space-y-6">
           <div className="flex items-center gap-4 px-2">
             <div className="w-2 h-8 bg-[#135c4a] rounded-full" />
-            <h3 className="text-2xl font-black text-slate-800 tracking-tight">评估结论：音位对比分析</h3>
+            <h3 className="text-2xl font-black text-slate-800 tracking-tight">构音清晰度表</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {contrastData.map((section, idx) => (
               <div key={idx} className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-100 flex flex-col overflow-hidden">
@@ -181,7 +190,7 @@ export default function AssessmentResult() {
         <div className="space-y-6">
           <div className="flex items-center gap-4 px-2">
             <div className="w-2 h-8 bg-blue-500 rounded-full" />
-            <h3 className="text-2xl font-black text-slate-800 tracking-tight">评判明细：各题目得分详情</h3>
+            <h3 className="text-2xl font-black text-slate-800 tracking-tight">构音记录表</h3>
           </div>
 
           <div className="bg-white rounded-[3rem] shadow-2xl shadow-slate-200 border border-slate-100 overflow-hidden">
@@ -189,17 +198,17 @@ export default function AssessmentResult() {
               {columns.map((columnItems, colIdx) => (
                 <div key={colIdx} className={cn("flex flex-col", colIdx < 2 && "lg:border-r border-slate-100")}>
                   <div className="grid grid-cols-[60px_1fr_100px] bg-slate-50/80 px-4 py-3 border-b border-slate-100">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">No.</span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Stimulus</span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Outcome</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">编号</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">词语</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">结果</span>
                   </div>
-                  
+
                   <div className="flex flex-col">
                     {columnItems.map((item: any) => {
                       const formalIdx = formalItems.indexOf(item);
                       const result = results[formalIdx + 2];
                       const status = getStatusInfo(result);
-                      
+
                       return (
                         <div key={item.id} className="grid grid-cols-[60px_1fr_100px] border-b border-slate-50 hover:bg-slate-50/80 transition-all group items-center">
                           <div className="py-4 text-center font-bold text-slate-300 tabular-nums text-xs group-hover:text-slate-500 transition-colors">{item.id}</div>
@@ -207,13 +216,13 @@ export default function AssessmentResult() {
                             <span className="text-lg font-black text-slate-700 tracking-tight">{item.word}</span>
                           </div>
                           <div className="py-4 px-2">
-                             <div className={cn(
-                               "px-3 py-1.5 rounded-xl text-[11px] font-black text-center shadow-sm transition-all",
-                               status.bgColor,
-                               status.color
-                             )}>
-                               {status.label}
-                             </div>
+                            <div className={cn(
+                              "px-3 py-1.5 rounded-xl text-[11px] font-black text-center shadow-sm transition-all",
+                              status.bgColor,
+                              status.color
+                            )}>
+                              {status.label}
+                            </div>
                           </div>
                         </div>
                       );
@@ -226,25 +235,247 @@ export default function AssessmentResult() {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center justify-center gap-8 py-6 px-8 bg-white rounded-3xl border border-slate-100 shadow-sm">
-           <div className="flex items-center gap-2">
-             <div className="w-3 h-3 rounded-full bg-emerald-500" />
-             <span className="text-slate-500 font-bold text-xs">正确</span>
-           </div>
-           <div className="flex items-center gap-2">
-             <div className="w-3 h-3 rounded-full bg-amber-500" />
-             <span className="text-slate-500 font-bold text-xs">歪曲/音位对比异常</span>
-           </div>
-           <div className="flex items-center gap-2">
-             <div className="w-3 h-3 rounded-full bg-slate-300" />
-             <span className="text-slate-500 font-bold text-xs">未评估项目</span>
-           </div>
+        <div className="flex items-center justify-center gap-8 py-6 px-8 bg-white rounded-3xl border border-slate-100 shadow-sm flex-wrap">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-emerald-500" />
+            <span className="text-slate-500 font-bold text-xs">正确</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-amber-500" />
+            <span className="text-slate-500 font-bold text-xs">歪曲</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-slate-400" />
+            <span className="text-slate-500 font-bold text-xs">遗漏</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-blue-500" />
+            <span className="text-slate-500 font-bold text-xs">替代</span>
+          </div>
+        </div>
+
+        {/* Section 3: Phonemic Contrast Record Table (音位对比记录表) */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-4 px-2">
+            <div className="w-2 h-8 bg-amber-500 rounded-full" />
+            <h3 className="text-2xl font-black text-slate-800 tracking-tight">音位对比记录表</h3>
+          </div>
+
+          <div className="bg-white rounded-[3rem] shadow-2xl shadow-slate-200 border border-slate-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left min-w-[1200px]">
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-100">
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center border-r border-slate-50/50 w-20">序号</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-50/50 w-40">音位</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center border-r border-slate-50/50 w-28">语音对序号</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center border-r border-slate-50/50 w-32">最小音位对比</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center border-r border-slate-50/50 w-24">卡片编号</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center border-r border-slate-50/50 w-28">目标音</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center border-r border-slate-50/50 w-28">实发音</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center border-r border-slate-50/50 w-28">对比结果</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">错误走向</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-xs text-slate-600">
+                  {/*序号 1-15 完整数据结构化渲染 */}
+                  {[
+                    // Group 1: 塞音送气/不送气
+                    {
+                      id: '1', pos: '塞音送气与不送气',
+                      error: '送气化：送气音替代不送气音\n替代送气*：不送气音替代送气音',
+                      pairs: [
+                        { id: '1双唇音', contrasts: [{ type: '送气', card: '2', target: 'p' }, { type: '不送气', card: '1', target: 'b' }] },
+                        { id: '2舌尖中音', contrasts: [{ type: '送气', card: '6', target: 't' }, { type: '不送气', card: '24', target: 'd' }] },
+                        { id: '3舌根音', contrasts: [{ type: '送气', card: '26', target: 'k' }, { type: '不送气', card: '25', target: 'g' }] },
+                      ]
+                    },
+                    // Group 2: 塞擦音送气/不送气
+                    {
+                      id: '2', pos: '塞擦音送气与不送气',
+                      error: '送气化 / 替代送气',
+                      pairs: [
+                        { id: '4舌面音', contrasts: [{ type: '送气', card: '13', target: 'q' }, { type: '不送气', card: '12', target: 'j' }] },
+                        { id: '5舌尖后音', contrasts: [{ type: '送气', card: '16', target: 'ch' }, { type: '不送气', card: '15', target: 'zh' }] },
+                        { id: '6舌尖前音', contrasts: [{ type: '送气', card: '31', target: 'c' }, { type: '不送气', card: '30', target: 'z' }] },
+                      ]
+                    },
+                    // Group 3: 塞音与擦音
+                    {
+                      id: '3', pos: '塞音与擦音',
+                      error: '塞音化 / 替代塞音',
+                      pairs: [
+                        { id: '7舌根音', contrasts: [{ type: '塞音', card: '27', target: 'k' }, { type: '擦音', card: '11', target: 'h' }] },
+                        { id: '8唇音', contrasts: [{ type: '塞音', card: '22', target: 'b' }, { type: '擦音', card: '4', target: 'f' }] },
+                      ]
+                    },
+                    // Group 4: 塞擦音与擦音
+                    {
+                      id: '4', pos: '塞擦音与擦音',
+                      error: '塞擦音化',
+                      pairs: [
+                        { id: '9', contrasts: [{ type: '塞擦音', card: '12', target: 'j' }] },
+                      ]
+                    },
+                    // Group 5: 塞音与鼻音
+                    {
+                      id: '5', pos: '塞音与鼻音',
+                      error: '鼻音化 / 替代鼻音',
+                      pairs: [
+                        { id: '12双唇音', contrasts: [{ type: '塞音', card: '1', target: 'b' }, { type: '鼻音', card: '3', target: 'm' }] },
+                        { id: '13舌尖中音', contrasts: [{ type: '塞音', card: '24', target: 'd' }, { type: '鼻音', card: '7', target: 'n' }] },
+                      ]
+                    },
+                    // Group 6: 擦音与无擦音
+                    {
+                      id: '6', pos: '擦音与无擦音',
+                      error: '声母/h/遗漏*',
+                      pairs: [
+                        { id: '14舌根音', contrasts: [{ type: '擦音', card: '11', target: 'h' }, { type: '无插音', card: '39', target: '无插音' }] },
+                      ]
+                    },
+                    // Group 7: 不同部位送气塞音
+                    {
+                      id: '7', pos: '不同部位送气塞音',
+                      error: '前进化 / 退后化',
+                      pairs: [
+                        { id: '15', contrasts: [{ type: '双唇音', card: '23', target: 'p' }, { type: '舌尖中音', card: '6', target: 't' }] },
+                        { id: '16', contrasts: [{ type: '双唇音', card: '23', target: 'p' }, { type: '舌根音', card: '10', target: 'k' }] },
+                        { id: '17', contrasts: [{ type: '舌尖中音', card: '6', target: 't' }, { type: '舌根音', card: '10', target: 'k' }] },
+                      ]
+                    },
+                    // Group 8: 不同部位不送气塞音
+                    {
+                      id: '8', pos: '不同部位不送气塞音',
+                      error: '前进化 / 退后化',
+                      pairs: [
+                        { id: '18', contrasts: [{ type: '双唇音', card: '1', target: 'b' }, { type: '舌尖中音', card: '5', target: 'd' }] },
+                        { id: '19', contrasts: [{ type: '双唇音', card: '1', target: 'b' }, { type: '舌根音', card: '9', target: 'g' }] },
+                        { id: '20', contrasts: [{ type: '舌尖中音', card: '5', target: 'd' }, { type: '舌根音', card: '9', target: 'g' }] },
+                      ]
+                    },
+                    // Group 9: 不同部位不送气塞擦音
+                    {
+                      id: '9', pos: '不同部位不送气塞擦音',
+                      error: '卷舌化 / 替代卷舌*',
+                      pairs: [
+                        { id: '21舌尖后音', contrasts: [{ type: '舌尖后音', card: '28', target: 'zh' }] },
+                      ]
+                    },
+                    // Group 10: 前/后鼻韵母
+                    {
+                      id: '10', pos: '前鼻韵母与后鼻韵母',
+                      error: '鼻韵母前进/退后化',
+                      pairs: [
+                        { id: '24开口呼', contrasts: [{ type: '前鼻韵母', card: '32', target: 'an' }, { type: '后鼻韵母', card: '33', target: 'ang' }] },
+                        { id: '25齐齿呼', contrasts: [{ type: '前鼻韵母', card: '34', target: 'in' }, { type: '后鼻韵母', card: '35', target: 'ing' }] },
+                        { id: '26合口呼', contrasts: [{ type: '前鼻韵母', card: '36', target: 'uan' }, { type: '后鼻韵母', card: '37', target: 'uang' }] },
+                      ]
+                    },
+                    // Group 11: 鼻韵母与无鼻韵母
+                    {
+                      id: '11', pos: '鼻韵母与无鼻韵母',
+                      error: '鼻韵母遗漏*',
+                      pairs: [
+                        { id: '27', contrasts: [{ type: '前鼻韵母', card: '34', target: 'in' }, { type: '无鼻韵母', card: '14', target: 'i' }] },
+                        { id: '28', contrasts: [{ type: '后鼻韵母', card: '35', target: 'ing' }, { type: '无鼻韵母', card: '14', target: 'i' }] },
+                      ]
+                    },
+                    // Group 12: 元音类型
+                    {
+                      id: '12', pos: '三元音、双元音与单元音',
+                      error: '元音/鼻韵母遗漏',
+                      pairs: [
+                        { id: '29', contrasts: [{ type: '三元音', card: '42', target: 'iao' }, { type: '双元音', card: '41', target: 'ia' }] },
+                        { id: '30', contrasts: [{ type: '双元音', card: '41', target: 'ia' }, { type: '单元音', card: '12', target: 'i' }] },
+                      ]
+                    },
+                    // Group 13: 前/后元音
+                    {
+                      id: '13', pos: '前元音与后元音对比',
+                      error: '后元音前进 / 前元音退后',
+                      pairs: [
+                        { id: '31', contrasts: [{ type: '前元音', card: '40', target: 'i' }, { type: '后元音', card: '43', target: 'u' }] },
+                      ]
+                    },
+                    // Group 14: 高/低元音
+                    {
+                      id: '14', pos: '高元音与低元音对比',
+                      error: '低元音升高 / 高元音下降',
+                      pairs: [
+                        { id: '32', contrasts: [{ type: '高元音', card: '46', target: 'i' }, { type: '低元音', card: '38', target: 'a' }] },
+                      ]
+                    },
+                    // Group 15: 圆唇/非圆唇
+                    {
+                      id: '15', pos: '圆唇音与非圆唇音对比',
+                      error: '圆唇化 / 替代圆唇',
+                      pairs: [
+                        { id: '33', contrasts: [{ type: '圆唇音', card: '44', target: 'yu' }, { type: '非圆唇音', card: '45', target: 'yi' }] },
+                      ]
+                    },
+                    // Group 16: 一声与二声
+                    {
+                      id: '16', pos: '一声与二声',
+                      error: '•二声化：二声替代一声\n•替代二声*：一声替代二声',
+                      pairs: [
+                        { id: '34', contrasts: [{ type: '一声', card: '47', target: '1' }, { type: '二声', card: '48', target: '2' }] },
+                      ]
+                    },
+                    // Group 17: 一声与三声
+                    {
+                      id: '17', pos: '一声与三声',
+                      error: '•三声化：三声替代一声\n•替代三声*：一声替代三声',
+                      pairs: [
+                        { id: '35', contrasts: [{ type: '一声', card: '47', target: '1' }, { type: '三声', card: '49', target: '3' }] },
+                      ]
+                    },
+                    // Group 18: 一声与四声
+                    {
+                      id: '18', pos: '一声与四声',
+                      error: '•四声化：四声替代一声\n•替代四声*：一声替代四声',
+                      pairs: [
+                        { id: '36', contrasts: [{ type: '一声', card: '47', target: '1' }, { type: '四声', card: '50', target: '4' }] },
+                      ]
+                    },
+                  ].map((group) => {
+                    const groupRows = group.pairs.reduce((sum, p) => sum + p.contrasts.length, 0);
+                    return group.pairs.map((pair, pIdx) => (
+                      pair.contrasts.map((contrast, cIdx) => (
+                        <tr key={`${group.id}-${pIdx}-${cIdx}`} className="group hover:bg-slate-50/30 transition-colors">
+                          {pIdx === 0 && cIdx === 0 && (
+                            <>
+                              <td rowSpan={groupRows} className="px-6 py-4 text-center font-bold text-slate-300 border-r border-slate-100/50">{group.id}</td>
+                              <td rowSpan={groupRows} className="px-6 py-4 font-bold text-slate-800 border-r border-slate-100/50 whitespace-pre-line">{group.pos}</td>
+                            </>
+                          )}
+                          {cIdx === 0 && (
+                            <td rowSpan={pair.contrasts.length} className="px-6 py-4 text-center font-bold border-r border-slate-100/50">{pair.id}</td>
+                          )}
+                          <td className="px-6 py-4 text-center border-r border-slate-100/50">{contrast.type}</td>
+                          <td className="px-6 py-4 text-center tabular-nums border-r border-slate-100/50">{contrast.card}</td>
+                          <td className="px-6 py-4 text-center text-lg font-black text-slate-900 border-r border-slate-100/50">{contrast.target}</td>
+                          <td className="px-6 py-4 border-r border-slate-100/50"><div className="h-8 bg-slate-50 rounded-lg border border-dashed border-slate-200 shadow-inner" /></td>
+                          <td className="px-6 py-4 border-r border-slate-100/50"><div className="h-8 bg-slate-50 rounded-lg border border-dashed border-slate-200 shadow-inner" /></td>
+                          {pIdx === 0 && cIdx === 0 && (
+                            <td rowSpan={groupRows} className="px-6 py-4 text-[10px] font-medium leading-relaxed text-slate-400 whitespace-pre-line group-hover:text-slate-500 transition-colors">
+                              {group.error}
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    ));
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         {/* Report Footer */}
         <div className="flex flex-col items-center gap-4 py-8">
-           <p className="text-slate-400 font-bold text-sm tracking-tight">评估完成时间：{new Date().toLocaleString()}</p>
-           <div className="w-16 h-1.5 bg-slate-100 rounded-full" />
+          <p className="text-slate-400 font-bold text-sm tracking-tight">本评估报告仅供参考，不代表临床医学诊断结果。如有疑问，请咨询专业医师或相关医疗机构进行进一步诊断。</p>
+          <div className="w-16 h-1.5 bg-slate-100 rounded-full" />
         </div>
       </main>
     </div>

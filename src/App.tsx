@@ -94,6 +94,12 @@ function Topbar() {
 
 export default function App() {
   const [isRequirementsOpen, setIsRequirementsOpen] = useState(false);
+  const [selectedPrd, setSelectedPrd] = useState({ title: '', content: '' });
+
+  const handlePrdSelect = (title: string, content: string) => {
+    setSelectedPrd({ title, content });
+    setIsRequirementsOpen(true);
+  };
 
   return (
     <Router>
@@ -102,7 +108,7 @@ export default function App() {
         <div 
           className={cn(
             "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out",
-            isRequirementsOpen ? "mr-[450px]" : "mr-0"
+            isRequirementsOpen ? "mr-[600px]" : "mr-0"
           )}
         >
           <Topbar />
@@ -125,10 +131,12 @@ export default function App() {
         <RequirementsDrawer 
           isOpen={isRequirementsOpen} 
           onClose={() => setIsRequirementsOpen(false)} 
+          title={selectedPrd.title}
+          content={selectedPrd.content}
         />
         
         <FloatingRequirementsButton 
-          onClick={() => setIsRequirementsOpen(!isRequirementsOpen)} 
+          onSelect={handlePrdSelect}
           isOpen={isRequirementsOpen}
         />
       </div>
