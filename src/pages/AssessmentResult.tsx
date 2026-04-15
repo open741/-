@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Printer, Download, User, Calendar, FileText, CheckCircle2, TrendingUp, AlertCircle, Quote } from 'lucide-react';
+import { ArrowLeft, Printer, Download, User, Calendar, FileText, CheckCircle2, TrendingUp, AlertCircle, Quote, Edit3 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface TestResult {
@@ -25,7 +25,15 @@ export default function AssessmentResult() {
     id: studentId
   };
 
-  const formalItems = testItems.filter((item: any) => !item.id.includes('例'));
+  const motorItem = testItems.find((item: any) => item.isMotorFunction);
+  const formalItems = testItems.filter((item: any) => !item.id.includes('例') && !item.isMotorFunction);
+
+  // Mock motor scores if not provided in state
+  const motorScores = (location.state as any)?.motorScores || {
+    jaw_down: 3, jaw_up: 4, jaw_cont: 3,
+    lip_prot: 2, lip_round: 2, lip_alt: 3, lip_close: 4,
+    tongue_tip_alt: 3, tongue_alt: 2
+  };
   const columnCount = 3;
   const itemsPerColumn = Math.ceil(formalItems.length / columnCount);
   const columns = Array.from({ length: columnCount }, (_, i) =>
@@ -41,6 +49,27 @@ export default function AssessmentResult() {
       case 'substituted': return { label: result.pinyin || '替代', color: 'text-blue-600', bgColor: 'bg-blue-50' };
       default: return { label: '未评估', color: 'text-slate-400', bgColor: 'bg-slate-50' };
     }
+  };
+
+  const renderHighlightedPinyin = (pinyin: string, target: string) => {
+    if (!pinyin || !target) return pinyin;
+    if (['1', '2', '3', '4'].includes(target)) return <span className="text-red-500">{pinyin}</span>;
+
+    const vowels: Record<string, string> = { 'a': '[aāáǎà]', 'e': '[eēéěè]', 'i': '[iīíǐì]', 'o': '[oōóǒò]', 'u': '[uūúǔù]', 'v': '[vüǖǘǚǜ]', 'ü': '[üǖǘǚǜ]' };
+    let pattern = '';
+    for (const char of target.toLowerCase()) pattern += vowels[char] || char;
+
+    try {
+      const regex = new RegExp(pattern, 'i');
+      const match = pinyin.match(regex);
+      if (match && match.index !== undefined) {
+        const start = pinyin.slice(0, match.index);
+        const highlighted = pinyin.slice(match.index, match.index + match[0].length);
+        const end = pinyin.slice(match.index + match[0].length);
+        return <span className="text-slate-400">{start}<span className="text-red-500">{highlighted}</span>{end}</span>;
+      }
+    } catch (e) { }
+    return pinyin;
   };
 
   // Sound Contrast Data based on the uploaded image
@@ -102,49 +131,50 @@ export default function AssessmentResult() {
       <main className="max-w-7xl mx-auto w-full p-8 space-y-10">
         {/* Modern Stats Summary Card */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="md:col-span-2 bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/40 border border-white flex items-center gap-8">
-            <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-[2rem] flex items-center justify-center shadow-inner shrink-0 ring-1 ring-emerald-100">
-              <User className="w-10 h-10" />
+          <div className="md:col-span-4 bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/40 border border-white flex items-center gap-10">
+            <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-[2.2rem] flex items-center justify-center shadow-inner shrink-0 ring-1 ring-emerald-100">
+              <User className="w-12 h-12" />
             </div>
-            <div className="flex-1 space-y-3">
-              <div className="flex items-center gap-3">
-                <h2 className="text-3xl font-black text-slate-800">{student.name}</h2>
-                <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-black uppercase tracking-wider">{student.gender}</span>
+            <div className="flex-1 space-y-4">
+              <div className="flex items-center gap-4">
+                <h2 className="text-3xl font-black text-slate-800 tracking-tight">{student.name}</h2>
+                <span className="px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-xs font-black uppercase tracking-widest border border-emerald-100">{student.gender}</span>
               </div>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-slate-400 font-bold text-sm">
-                <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-emerald-500/60" /> 出生日期: {student.birthDate}</span>
-                <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-500/60" /> 测评年龄: {student.age}</span>
-                <span className="flex items-center gap-2"><FileText className="w-4 h-4 text-emerald-500/60" /> 月龄: {student.monthAge}</span>
-                <span className="flex items-center gap-2"><User className="w-4 h-4 text-emerald-500/60" /> 测评人员: {student.assessor}</span>
+              <div className="flex flex-wrap items-center gap-x-12 gap-y-3 text-slate-400 font-bold text-sm">
+                <div className="flex items-center gap-2 whitespace-nowrap"><Calendar className="w-4 h-4 text-emerald-500/60" /> 出生日期: {student.birthDate}</div>
+                <div className="flex items-center gap-2 whitespace-nowrap"><TrendingUp className="w-4 h-4 text-emerald-500/60" /> 测评年龄: {student.age}</div>
+                <div className="flex items-center gap-2 whitespace-nowrap"><FileText className="w-4 h-4 text-emerald-500/60" /> 月龄: {student.monthAge}</div>
+                <div className="flex items-center gap-2 cursor-pointer hover:text-slate-600 transition-colors whitespace-nowrap">
+                  <Calendar className="w-4 h-4 text-emerald-500/60" /> 评估日期: {student.assessmentTime}
+                  <Edit3 className="w-3.5 h-3.5 text-emerald-500/80 hover:text-emerald-600 transition-all ml-1" />
+                </div>
+                <div className="flex items-center gap-2 cursor-pointer hover:text-slate-600 transition-colors whitespace-nowrap">
+                  <User className="w-4 h-4 text-emerald-500/60" /> 测评人员: {student.assessor}
+                  <Edit3 className="w-3.5 h-3.5 text-emerald-500/80 hover:text-emerald-600 transition-all ml-1" />
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="bg-[#135c4a] rounded-[2.5rem] p-8 shadow-xl shadow-emerald-900/20 flex flex-col justify-center text-white relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:translate-x-2 transition-transform duration-700">
-              <TrendingUp className="w-32 h-32" />
-            </div>
-            <p className="text-emerald-200/60 text-[10px] font-black uppercase tracking-[0.2em] mb-2">构音清晰度</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-black tabular-nums">13.51</span>
-              <span className="text-xl font-bold text-emerald-300">%</span>
-            </div>
-          </div>
-
-          <div className="bg-amber-500 rounded-[2.5rem] p-8 shadow-xl shadow-amber-900/20 flex flex-col justify-center text-white relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:translate-x-2 transition-transform duration-700">
-              <AlertCircle className="w-32 h-32" />
-            </div>
-            <p className="text-amber-100/60 text-[10px] font-black uppercase tracking-[0.2em] mb-2">相对年龄</p>
-            <p className="text-2xl font-black tracking-tight">3 岁</p>
           </div>
         </div>
 
         {/* Section 1: Sound Contrast Analysis (音位对比分析) */}
         <div className="space-y-6">
-          <div className="flex items-center gap-4 px-2">
-            <div className="w-2 h-8 bg-[#135c4a] rounded-full" />
-            <h3 className="text-2xl font-black text-slate-800 tracking-tight">构音清晰度表</h3>
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-4">
+              <div className="w-2 h-8 bg-[#135c4a] rounded-full" />
+              <h3 className="text-2xl font-black text-slate-800 tracking-tight">构音清晰度表</h3>
+            </div>
+            <div className="flex items-center gap-3 bg-emerald-500/10 px-5 py-2.5 rounded-2xl border border-emerald-500/20 shadow-sm">
+              <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">合计得分</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-black text-emerald-800">3/38</span>
+              </div>
+              <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">构音清晰度</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-black text-emerald-800">13.51</span>
+                <span className="text-xs font-bold text-emerald-800/60">%</span>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -212,8 +242,11 @@ export default function AssessmentResult() {
                       return (
                         <div key={item.id} className="grid grid-cols-[60px_1fr_100px] border-b border-slate-50 hover:bg-slate-50/80 transition-all group items-center">
                           <div className="py-4 text-center font-bold text-slate-300 tabular-nums text-xs group-hover:text-slate-500 transition-colors">{item.id}</div>
-                          <div className="py-4 text-center">
-                            <span className="text-lg font-black text-slate-700 tracking-tight">{item.word}</span>
+                          <div className="py-2 flex flex-col items-center">
+                            <span className="text-[10px] font-bold font-mono text-slate-400 mb-0.5 whitespace-nowrap">
+                              {renderHighlightedPinyin(item.pinyin, item.targetSound)}
+                            </span>
+                            <span className="text-base font-black text-slate-800 tracking-tight">{item.word}</span>
                           </div>
                           <div className="py-4 px-2">
                             <div className={cn(
@@ -454,7 +487,7 @@ export default function AssessmentResult() {
                           )}
                           <td className="px-6 py-4 text-center border-r border-slate-100/50">{contrast.type}</td>
                           <td className="px-6 py-4 text-center tabular-nums border-r border-slate-100/50">{contrast.card}</td>
-                          <td className="px-6 py-4 text-center text-lg font-black text-slate-900 border-r border-slate-100/50">{contrast.target}</td>
+                          <td className="px-6 py-4 text-center text-lg font-black text-red-500 border-r border-slate-100/50 tabular-nums">{contrast.target}</td>
                           <td className="px-6 py-4 border-r border-slate-100/50"><div className="h-8 bg-slate-50 rounded-lg border border-dashed border-slate-200 shadow-inner" /></td>
                           <td className="px-6 py-4 border-r border-slate-100/50"><div className="h-8 bg-slate-50 rounded-lg border border-dashed border-slate-200 shadow-inner" /></td>
                           {pIdx === 0 && cIdx === 0 && (
@@ -468,6 +501,137 @@ export default function AssessmentResult() {
                   })}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 4: Articulation Motor Function Subjective Assessment (构音运动功能主观评估表) */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-4 px-2">
+            <div className="w-2 h-8 bg-emerald-500 rounded-full" />
+            <h3 className="text-2xl font-black text-slate-800 tracking-tight">构音运动功能主观评估表</h3>
+          </div>
+
+          <div className="bg-white rounded-[3rem] shadow-2xl shadow-slate-200 border border-slate-100 overflow-hidden mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+              
+              {/* Jaw Category */}
+              <div className="flex flex-col">
+                <div className="bg-emerald-50/50 px-8 py-4 border-b border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span className="text-xs font-black text-slate-700 uppercase tracking-widest">下颌构音运动功能</span>
+                  </div>
+                  <span className="text-[10px] font-black text-emerald-600 bg-white px-3 py-1 rounded-full shadow-sm border border-emerald-100">
+                    得分: {motorScores.jaw_down + motorScores.jaw_up + motorScores.jaw_cont} / 12
+                  </span>
+                </div>
+                <div className="divide-y divide-slate-50">
+                  {[
+                    { key: 'jaw_down', label: '向下运动' },
+                    { key: 'jaw_up', label: '向上运动' },
+                    { key: 'jaw_cont', label: '上下连续运动' }
+                  ].map(item => (
+                    <div key={item.key} className="px-8 py-5 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+                      <span className="text-xs font-bold text-slate-500">{item.label}</span>
+                      <div className="flex gap-1.5 text-slate-300">
+                        {[0, 1, 2, 3, 4].map(score => (
+                          <div 
+                            key={score} 
+                            className={cn(
+                              "w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black transition-all",
+                              motorScores[item.key] === score 
+                                ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/10 scale-110" 
+                                : "bg-slate-50 text-slate-300 border border-slate-100"
+                            )}
+                          >
+                            {score}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Lip Category */}
+              <div className="flex flex-col">
+                <div className="bg-blue-50/50 px-8 py-4 border-b border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    <span className="text-xs font-black text-slate-700 uppercase tracking-widest">唇构音运动功能</span>
+                  </div>
+                  <span className="text-[10px] font-black text-blue-600 bg-white px-3 py-1 rounded-full shadow-sm border border-blue-100">
+                    得分: {motorScores.lip_prot + motorScores.lip_round + motorScores.lip_alt + motorScores.lip_close} / 16
+                  </span>
+                </div>
+                <div className="divide-y divide-slate-50">
+                  {[
+                    { key: 'lip_prot', label: '展唇运动' },
+                    { key: 'lip_round', label: '圆唇运动' },
+                    { key: 'lip_alt', label: '圆展交替运动' },
+                    { key: 'lip_close', label: '唇闭合运动' }
+                  ].map(item => (
+                    <div key={item.key} className="px-8 py-5 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+                      <span className="text-xs font-bold text-slate-500">{item.label}</span>
+                      <div className="flex gap-1.5 text-slate-300">
+                        {[0, 1, 2, 3, 4].map(score => (
+                          <div 
+                            key={score} 
+                            className={cn(
+                              "w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black transition-all",
+                              motorScores[item.key] === score 
+                                ? "bg-blue-500 text-white shadow-lg shadow-blue-500/10 scale-110" 
+                                : "bg-slate-50 text-slate-300 border border-slate-100"
+                            )}
+                          >
+                            {score}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tongue Category */}
+              <div className="flex flex-col">
+                <div className="bg-amber-50/50 px-8 py-4 border-b border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-amber-500" />
+                    <span className="text-xs font-black text-slate-700 uppercase tracking-widest">舌构音运动功能</span>
+                  </div>
+                  <span className="text-[10px] font-black text-amber-600 bg-white px-3 py-1 rounded-full shadow-sm border border-amber-100">
+                    得分: {motorScores.tongue_tip_alt + motorScores.tongue_alt} / 8
+                  </span>
+                </div>
+                <div className="divide-y divide-slate-50">
+                  {[
+                    { key: 'tongue_tip_alt', label: '舌尖前后交替' },
+                    { key: 'tongue_alt', label: '舌尖上下交替' }
+                  ].map(item => (
+                    <div key={item.key} className="px-8 py-5 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+                      <span className="text-xs font-bold text-slate-500">{item.label}</span>
+                      <div className="flex gap-1.5 text-slate-300">
+                        {[0, 1, 2, 3, 4].map(score => (
+                          <div 
+                            key={score} 
+                            className={cn(
+                              "w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black transition-all",
+                              motorScores[item.key] === score 
+                                ? "bg-amber-500 text-white shadow-lg shadow-amber-500/10 scale-110" 
+                                : "bg-slate-50 text-slate-300 border border-slate-100"
+                            )}
+                          >
+                            {score}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
           </div>
         </div>

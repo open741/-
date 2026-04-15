@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Volume2, ChevronLeft, ChevronRight, Mic, RotateCcw, CheckCircle2, XCircle, Grid, X, Play, User, Search } from 'lucide-react';
+import { ArrowLeft, Volume2, ChevronLeft, ChevronRight, Mic, RotateCcw, CheckCircle2, XCircle, Grid, X, Play, User, Search, HelpCircle } from 'lucide-react';
 import { cn, generatePlaceholder } from '../lib/utils';
 
 export default function AssessmentForm() {
@@ -15,6 +15,11 @@ export default function AssessmentForm() {
   const [isSubstitutionModalOpen, setIsSubstitutionModalOpen] = useState(false);
   const [substitutionPinyin, setSubstitutionPinyin] = useState('');
   const [recordingStatuses, setRecordingStatuses] = useState<Record<number, 'idle' | 'recording' | 'completed'>>({});
+  const [motorScores, setMotorScores] = useState<Record<string, number>>({
+    'm_down': 0, 'm_up': 0, 'm_continuous': 0,
+    'l_spread': 0, 'l_round': 0, 'l_alternate': 0, 'l_close': 0,
+    't_front_back': 0, 't_up_down': 0
+  });
 
   // Student Info Mockup
   const students = [
@@ -83,10 +88,58 @@ export default function AssessmentForm() {
     { id: '47', word: '蛙', pinyin: 'wā', targetSound: '1', image: generatePlaceholder('Artic_47', '蛙'), question: '这是什么？', prompt: '它是青____。' },
     { id: '48', word: '娃', pinyin: 'wá', targetSound: '2', image: generatePlaceholder('Artic_48', '娃'), question: '这是什么？', prompt: '你喜欢抱什么？' },
     { id: '49', word: '瓦', pinyin: 'wǎ', targetSound: '3', image: generatePlaceholder('Artic_49', '瓦'), question: '这是什么？', prompt: '屋顶上有什么？' },
-    { id: '50', word: '袜', pinyin: 'wà', targetSound: '4', image: generatePlaceholder('Artic_50', '袜'), question: '这是什么？', prompt: '指着小朋友的袜子问：“这是什么？”' }
+    { id: '50', word: '袜', pinyin: 'wà', targetSound: '4', image: generatePlaceholder('Artic_50', '袜'), question: '这是什么？', prompt: '指着小朋友的袜子问：“这是什么？”' },
+    { id: '51', word: '构音运动功能主观评估', pinyin: '', targetSound: '', isMotorFunction: true }
   ];
 
   const currentItem = testItems[currentStep] || testItems[0];
+
+  const renderHighlightedPinyin = (pinyin: string, target: string) => {
+    if (!target) return pinyin;
+
+    // Handle tone assessment (targets '1', '2', '3', '4')
+    if (['1', '2', '3', '4'].includes(target)) {
+      return <span className="text-red-500">{pinyin}</span>;
+    }
+
+    const vowels: Record<string, string> = {
+      'a': '[aāáǎà]',
+      'e': '[eēéěè]',
+      'i': '[iīíǐì]',
+      'o': '[oōóǒò]',
+      'u': '[uūúǔù]',
+      'v': '[vüǖǘǚǜ]',
+      'ü': '[üǖǘǚǜ]'
+    };
+
+    let pattern = '';
+    for (const char of target.toLowerCase()) {
+      pattern += vowels[char] || char;
+    }
+
+    try {
+      const regex = new RegExp(pattern, 'i');
+      const match = pinyin.match(regex);
+
+      if (match && match.index !== undefined) {
+        const start = pinyin.slice(0, match.index);
+        const highlighted = pinyin.slice(match.index, match.index + match[0].length);
+        const end = pinyin.slice(match.index + match[0].length);
+
+        return (
+          <span className="text-slate-600">
+            {start}
+            <span className="text-red-600">{highlighted}</span>
+            {end}
+          </span>
+        );
+      }
+    } catch (e) {
+      console.error('Pinyin matching error:', e);
+    }
+
+    return pinyin;
+  };
 
   const handleResult = (type: 'pass' | 'distorted' | 'omitted' | 'substituted') => {
     const result = { type, pinyin: type === 'substituted' ? substitutionPinyin : undefined };
@@ -132,8 +185,85 @@ export default function AssessmentForm() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="h-6 w-px bg-slate-200" />
-            <div className="flex flex-col">
-              <h1 className="text-base font-bold text-slate-800 leading-tight">构音语音能力评估</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-base font-bold text-slate-800 leading-tight whitespace-nowrap">构音语音能力评估</h1>
+
+              {/* Global Instructions Tooltip */}
+              <div className="relative group/global-help">
+                <button className="flex items-center justify-center w-5 h-5 text-slate-300 hover:text-[#135c4a] transition-colors rounded-full hover:bg-slate-50">
+                  <HelpCircle className="w-3.5 h-3.5" />
+                </button>
+
+                {/* Tooltip Content */}
+                <div className="absolute left-0 top-full mt-3 w-[420px] bg-white rounded-3xl shadow-[0_20px_70px_-10px_rgba(0,0,0,0.15)] border border-slate-100 p-8 opacity-0 invisible group-hover/global-help:opacity-100 group-hover/global-help:visible transition-all duration-300 z-[110] translate-y-2 group-hover/global-help:translate-y-0 text-left cursor-default">
+                  <div className="mb-6 pb-2 border-b border-slate-50">
+                    <h2 className="text-lg font-black text-slate-800 tracking-tight">《构音语音能力评估》评估说明</h2>
+                  </div>
+
+                  <div className="space-y-8">
+                    {/* Section 1 */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-4 bg-emerald-500 rounded-full" />
+                        <h3 className="text-sm font-black text-slate-800">一、评估规范</h3>
+                      </div>
+                      <p className="text-[11px] text-slate-500 leading-relaxed pl-3.5">
+                        治疗师需严格按照标准提示语提问或提示，引导患者看图说出<span className="text-[#135c4a] font-bold">“目标词”</span>。
+                      </p>
+                    </div>
+
+                    {/* Section 2 */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-4 bg-blue-500 rounded-full" />
+                        <h3 className="text-sm font-black text-slate-800">二、评定标准 </h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 pl-3.5">
+                        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                          <p className="text-[10px] font-black text-slate-700 mb-1 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            正确 ( √ )
+                          </p>
+                          <p className="text-[9px] text-slate-400 pl-3">发音清晰、准确。</p>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                          <p className="text-[10px] font-black text-slate-700 mb-1 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                            替代 ( 拼音 )
+                          </p>
+                          <p className="text-[9px] text-slate-400 pl-3">发成了其他音位。</p>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                          <p className="text-[10px] font-black text-slate-700 mb-1 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                            遗漏 ( ⊖ )
+                          </p>
+                          <p className="text-[9px] text-slate-400 pl-3">目标音在发音中缺失。</p>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                          <p className="text-[10px] font-black text-slate-700 mb-1 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                            歪曲 ( ⊗ )
+                          </p>
+                          <p className="text-[9px] text-slate-400 pl-3">发音怪异，不符标准。</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section 3 */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-4 bg-amber-500 rounded-full" />
+                        <h3 className="text-sm font-black text-slate-800">三、附加评估 ( 选填 )</h3>
+                      </div>
+                      <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-100/50 space-y-2 ml-3.5">
+                        <p className="text-[10px] text-slate-600"><span className="font-bold text-slate-800">说明：</span>《构音运动功能主观评估表》为选填项，可依临床情况决定是否作答。</p>
+                        <p className="text-[10px] text-slate-600"><span className="font-bold text-slate-800">规则：</span>对下颌、唇、舌进行 <span className="text-amber-700 font-bold">0-4分</span> 量化打分（分数越高代表功能越好）。</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -228,7 +358,7 @@ export default function AssessmentForm() {
           </button>
         </div>
 
-        <button 
+        <button
           onClick={() => navigate('/assessment-result', { state: { results: testResults, studentId: selectedStudentId, testItems } })}
           className="px-5 py-2 bg-[#135c4a] text-white rounded-xl text-sm font-bold hover:bg-[#0e4537] transition-all shadow-lg shadow-emerald-900/20 active:scale-95"
         >
@@ -285,7 +415,9 @@ export default function AssessmentForm() {
                         !result && "bg-white border-slate-200 text-slate-400 hover:border-emerald-500 hover:text-emerald-500"
                       )}
                     >
-                      <span>{item.id}</span>
+                      <span className={item.isMotorFunction ? "text-[10px] leading-tight text-center px-1" : ""}>
+                        {item.isMotorFunction ? "构音运动功能主观评估" : item.id}
+                      </span>
                       {result && (
                         <span className="text-[10px] opacity-90 leading-none">
                           {result.type === 'pass' && '√'}
@@ -387,11 +519,16 @@ export default function AssessmentForm() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1">
 
           {/* Left Column: Visuals & Stimulus */}
-          <div className="lg:col-span-8 flex flex-col gap-6">
+          <div className={cn(
+            "flex flex-col gap-6 transition-all duration-500",
+            currentItem.isMotorFunction ? "lg:col-span-12" : "lg:col-span-8"
+          )}>
             <div className="bg-white rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/50 border border-white flex-1 flex flex-col relative group overflow-hidden">
               {/* Item ID Tag - More prominent in corner */}
-              <div className="absolute top-0 left-0 bg-[#135c4a] text-white px-6 py-2 rounded-br-2xl text-xs font-black tracking-widest shadow-lg z-10">
-                {currentItem.id.includes('例') ? `例题 ${currentItem.id.replace('例', '')}` : `第 ${currentItem.id} 题`}
+              <div className="absolute top-0 left-0 bg-[#135c4a] text-white px-6 py-2 rounded-br-2xl text-xs font-black tracking-widest shadow-lg z-10 transition-all">
+                {currentItem.isMotorFunction
+                  ? "构音运动功能主观评估"
+                  : (currentItem.id.includes('例') ? `例题 ${currentItem.id.replace('例', '')}` : `第 ${currentItem.id} 题`)}
               </div>
 
               {/* Navigation Buttons - Integrated into Card */}
@@ -413,183 +550,452 @@ export default function AssessmentForm() {
                 <ChevronRight className="w-8 h-8 group-hover/nav:translate-x-1 transition-transform" />
               </button>
 
-              <div className="flex-1 flex flex-col md:flex-row gap-10 items-center px-8">
-                {/* Image Section */}
-                <div className="w-full md:w-1/2 aspect-square relative rounded-3xl overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center p-6 transition-transform duration-700 group-hover:scale-[1.01]">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
-                  <img src={currentItem.image} alt={currentItem.word} className="max-w-full max-h-full object-contain drop-shadow-2xl" />
-                </div>
-
-                {/* Text & Guidance Section */}
-                <div className="flex-1 flex flex-col justify-center gap-8 w-full">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-baseline gap-4">
-                      <h2 className="text-7xl font-black text-slate-900 tracking-tighter">{currentItem.word}</h2>
-                      <span className="text-3xl font-bold text-red-500/80 font-mono italic">{currentItem.pinyin}</span>
+              {/* Item Content: Standard or Motor Function */}
+              {currentItem.isMotorFunction ? (
+                <div className="flex-1 flex flex-col p-8 bg-slate-50/30 rounded-[2rem] border border-slate-100/50">
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex flex-col">
+                      <h3 className="text-2xl font-black text-slate-800 tracking-tight">构音运动功能主观评估</h3>
+                      <p className="text-sm text-slate-400 mt-1 italic">此项为选填项，请根据观察为各运动项打分（0-4分）</p>
                     </div>
-                    <div className="h-1.5 w-24 bg-emerald-500 rounded-full mt-2" />
+
+                    {/* Motor Rating Standards Button */}
+                    <div className="relative group/motor-help">
+                      <button className="flex items-center gap-2 px-6 py-2.5 bg-white hover:bg-[#135c4a] hover:text-white text-[#135c4a] rounded-2xl transition-all font-black text-xs shadow-sm shadow-slate-200/50 border border-slate-200 active:scale-95">
+                        <HelpCircle className="w-4 h-4" />
+                        评定标准
+                      </button>
+
+                      {/* Hover Overlay Window */}
+                      <div className="absolute right-0 top-full mt-4 w-[850px] bg-white rounded-[2.5rem] shadow-[0_20px_70px_-10px_rgba(0,0,0,0.15)] border border-slate-100 p-8 opacity-0 invisible group-hover/motor-help:opacity-100 group-hover/motor-help:visible transition-all duration-300 z-[100] translate-y-4 group-hover/motor-help:translate-y-0 text-left cursor-default">
+                        <div className="mb-8 flex items-center justify-between border-b border-slate-50 pb-4">
+                          <h4 className="text-xl font-black text-slate-800">构音运动评估分级标准 (0-4 级)</h4>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-10 overflow-y-auto max-h-[500px] pr-4 custom-scrollbar">
+                          {[
+                            {
+                              title: '下颌构音运动评估', color: 'emerald', levels: [
+                                { lv: '0级', ability: '下颌完全不动，不会发音。', desc: '无反应。' },
+                                { lv: '1级', ability: '下颌闭合位或大幅打开不动，发音时下颌不运动，需颈、头和肩协助。', desc: '下颌在构音过程中张开幅度过大或过小，下颌控制能力和稳定性差。下颌与头、肩、颈或眼睛的运动没有完全分离。' },
+                                { lv: '2级', ability: '下颌半开中位，发音时下颌左或右歪斜，语速缓慢，构音不清。', desc: '在构音过程中，下颌能保持在半开位，但下颌的转换速度缓慢，精细控制能力还不完善。' },
+                                { lv: '3级', ability: '下颌半开中位，运动速度可，幅度减少，1-2 个字构音不清。', desc: '在构音过程中，下颌力量和控制能力未发育成熟。' },
+                                { lv: '4级', ability: '下颌运动充分到位，构音清晰准确，语速适中。', desc: '在构音过程中，下颌有充分的力量和控制能力。' }
+                              ]
+                            },
+                            {
+                              title: '唇构音运动评估', color: 'blue', levels: [
+                                { lv: '0级', ability: '完全不运动，不会发音。', desc: '无反应。' },
+                                { lv: '1级', ability: '发音时双唇不运动或运动幅度很小，只能发一个音，需眼、头和肩协助。', desc: '在构音过程中，唇运动未与身体其他部分分离或存在结构性问题。' },
+                                { lv: '2级', ability: '唇幅度不充分，语速缓慢，大多构音不清。', desc: '在构音过程中，唇运动的幅度、力度和速度均未达到对应的运动模式。' },
+                                { lv: '3级', ability: '唇运动幅度尚可，但保持不稳定，有 1-2 个字构音不清。', desc: '在构音过程中，唇已具备了肌力量不足或缺乏做改动作的经验，但唇的精细分级控制不稳定的或运动。' },
+                                { lv: '4级', ability: '唇运动充分到位，构音清晰准确，语速适中。', desc: '唇运动达到了该运动模式的要求，面部和唇部有充分的肌力和较好的控制能力。' }
+                              ]
+                            },
+                            {
+                              title: '舌构音运动评估', color: 'amber', levels: [
+                                { lv: '0级', ability: '舌完全不运动，不会发音。', desc: '无反应。' },
+                                { lv: '1级', ability: '舌能够运动，但舌的各种运动模式还未习得，舌大运动还未发育完善，说话含混不清，舌运动还需辅助。', desc: '舌以粗大运动为主，还未与下颌、唇、头等器官分离出来，舌还未进行精细分化。' },
+                                { lv: '2级', ability: '舌能发出一些音，但构音不清，响度偏低、语速缓慢。', desc: '舌的精细运动能从大运动中分离一部分，但还未完全分离，舌肌无力或因肌张力高在使舌存在运动障碍。' },
+                                { lv: '3级', ability: '舌运动达到各种构音运动模式，但是不稳定，需要进行强化和精细分级。', desc: '说明舌的精细分级和控制还未习得。' },
+                                { lv: '4级', ability: '舌运动均达到了各种构音运动模式所做的要求，运动范围充分，构音准确。', desc: '舌的肌力和控制能力较好，舌的精细分级运动和控制能力良好。' }
+                              ]
+                            }
+                          ].map((section, idx) => (
+                            <div key={idx} className="space-y-4">
+                              <h5 className={cn("text-sm font-black flex items-center gap-2 text-slate-700")}>
+                                <div className={cn("w-2 h-2 rounded-full", `bg-${section.color}-500`)} />
+                                {section.title}
+                              </h5>
+                              <div className="overflow-hidden rounded-2xl border border-slate-100 shadow-sm">
+                                <table className="w-full text-[11px] text-left">
+                                  <thead className="bg-slate-50 text-slate-500 font-bold">
+                                    <tr>
+                                      <th className="px-4 py-3 w-16">分级</th>
+                                      <th className="px-4 py-3 w-1/2">能力</th>
+                                      <th className="px-4 py-3">说明</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-50">
+                                    {section.levels.map((row, rIdx) => (
+                                      <tr key={rIdx} className="hover:bg-slate-50/50 transition-colors">
+                                        <td className="px-4 py-3 font-black text-slate-700 whitespace-nowrap">{row.lv}</td>
+                                        <td className="px-4 py-3 text-slate-600 leading-relaxed font-medium">{row.ability}</td>
+                                        <td className="px-4 py-3 text-slate-500 leading-relaxed">{row.desc}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Question & Prompt */}
-                  <div className="space-y-6 bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
-                    <div className="flex items-start gap-4">
-                      <div className="shrink-0 mt-1 w-10 h-10 bg-emerald-500 text-white rounded-xl flex flex-col items-center justify-center shadow-lg shadow-emerald-500/20">
-                        <span className="text-xs font-black">提问</span>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1">
+                    {/* Mandible */}
+                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
+                      <div className="flex items-center justify-between border-b border-slate-50 pb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-5 bg-emerald-500 rounded-full" />
+                          <h4 className="font-black text-slate-800">下颌构音运动</h4>
+                        </div>
+                        <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">得分: {motorScores.m_down + motorScores.m_up + motorScores.m_continuous} / 12</span>
                       </div>
-                      <p className="text-slate-700 text-xl font-bold leading-tight pt-1">{currentItem.question}</p>
+
+                      <div className="space-y-8">
+                        {[
+                          { key: 'm_down', label: '向下运动' },
+                          { key: 'm_up', label: '向上运动' },
+                          { key: 'm_continuous', label: '上下连续运动' }
+                        ].map(item => (
+                          <div key={item.key} className="space-y-3">
+                            <span className="text-xs font-bold text-slate-500">{item.label}</span>
+                            <div className="flex justify-between items-center gap-2">
+                              {[0, 1, 2, 3, 4].map(score => (
+                                <button
+                                  key={score}
+                                  onClick={() => setMotorScores(prev => ({ ...prev, [item.key]: score }))}
+                                  className={cn(
+                                    "w-10 h-10 rounded-xl flex items-center justify-center font-black transition-all text-sm",
+                                    motorScores[item.key] === score
+                                      ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                                      : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+                                  )}
+                                >
+                                  {score}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex items-start gap-4">
-                      <div className="shrink-0 mt-1 w-10 h-10 bg-amber-500 text-white rounded-xl flex flex-col items-center justify-center shadow-lg shadow-amber-500/20">
-                        <span className="text-xs font-black">提示</span>
+
+                    {/* Lip */}
+                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
+                      <div className="flex items-center justify-between border-b border-slate-50 pb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-5 bg-blue-500 rounded-full" />
+                          <h4 className="font-black text-slate-800">唇构音运动功能</h4>
+                        </div>
+                        <span className="text-xs font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">得分: {motorScores.l_spread + motorScores.l_round + motorScores.l_alternate + motorScores.l_close} / 16</span>
                       </div>
-                      <p className="text-slate-500 text-lg font-medium leading-relaxed italic pt-1">{currentItem.prompt}</p>
+
+                      <div className="space-y-6">
+                        {[
+                          { key: 'l_spread', label: '展唇运动' },
+                          { key: 'l_round', label: '圆唇运动' },
+                          { key: 'l_alternate', label: '圆展交替运动' },
+                          { key: 'l_close', label: '唇闭合运动' }
+                        ].map(item => (
+                          <div key={item.key} className="space-y-3">
+                            <span className="text-xs font-bold text-slate-500">{item.label}</span>
+                            <div className="flex justify-between items-center gap-2">
+                              {[0, 1, 2, 3, 4].map(score => (
+                                <button
+                                  key={score}
+                                  onClick={() => setMotorScores(prev => ({ ...prev, [item.key]: score }))}
+                                  className={cn(
+                                    "w-9 h-9 rounded-xl flex items-center justify-center font-black transition-all text-sm",
+                                    motorScores[item.key] === score
+                                      ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20"
+                                      : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+                                  )}
+                                >
+                                  {score}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Tongue */}
+                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
+                      <div className="flex items-center justify-between border-b border-slate-50 pb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-5 bg-amber-500 rounded-full" />
+                          <h4 className="font-black text-slate-800">舌构音运动功能</h4>
+                        </div>
+                        <span className="text-xs font-black text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg">得分: {motorScores.t_front_back + motorScores.t_up_down} / 8</span>
+                      </div>
+
+                      <div className="space-y-8">
+                        {[
+                          { key: 't_front_back', label: '舌尖前后交替' },
+                          { key: 't_up_down', label: '舌尖上下交替' }
+                        ].map(item => (
+                          <div key={item.key} className="space-y-3">
+                            <span className="text-xs font-bold text-slate-500">{item.label}</span>
+                            <div className="flex justify-between items-center gap-2">
+                              {[0, 1, 2, 3, 4].map(score => (
+                                <button
+                                  key={score}
+                                  onClick={() => setMotorScores(prev => ({ ...prev, [item.key]: score }))}
+                                  className={cn(
+                                    "w-10 h-10 rounded-xl flex items-center justify-center font-black transition-all text-sm",
+                                    motorScores[item.key] === score
+                                      ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20"
+                                      : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+                                  )}
+                                >
+                                  {score}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex-1 flex flex-col md:flex-row gap-10 items-center px-8">
+                  {/* Image Section */}
+                  <div className="w-full md:w-1/2 aspect-square relative rounded-3xl overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center p-6 transition-transform duration-700 group-hover:scale-[1.01]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+                    <img src={currentItem.image} alt={currentItem.word} className="max-w-full max-h-full object-contain drop-shadow-2xl" />
+                  </div>
 
-              {/* Action: Pronunciation */}
-              <div className="absolute bottom-10 right-10 flex flex-col items-center gap-2">
-                <button className="w-20 h-20 bg-gradient-to-br from-[#135c4a] to-[#0d4537] text-white rounded-3xl flex items-center justify-center shadow-2xl shadow-[#135c4a]/40 hover:scale-110 active:scale-90 transition-all ring-4 ring-white">
-                  <Volume2 className="w-10 h-10" />
-                </button>
-                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">发音指导</span>
-              </div>
+                  {/* Text & Guidance Section */}
+                  <div className="flex-1 flex flex-col justify-center gap-8 w-full">
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-col items-start">
+                        <div className="text-8xl font-black font-mono tracking-tighter leading-none mb-4">
+                          {renderHighlightedPinyin(currentItem.pinyin, currentItem.targetSound)}
+                        </div>
+                        <h2 className="text-5xl font-bold text-slate-400 tracking-tight">{currentItem.word}</h2>
+                      </div>
+                      <div className="h-1.5 w-24 bg-emerald-500 rounded-full mt-2" />
+                    </div>
+
+                    {/* Question & Prompt */}
+                    <div className="space-y-6 bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
+                      <div className="flex items-start gap-4">
+                        <div className="shrink-0 mt-1 w-10 h-10 bg-emerald-500 text-white rounded-xl flex flex-col items-center justify-center shadow-lg shadow-emerald-500/20">
+                          <span className="text-xs font-black">提问</span>
+                        </div>
+                        <p className="text-slate-700 text-xl font-bold leading-tight pt-1">{currentItem.question}</p>
+                      </div>
+                      <div className="flex items-start gap-4">
+                        <div className="shrink-0 mt-1 w-10 h-10 bg-amber-500 text-white rounded-xl flex flex-col items-center justify-center shadow-lg shadow-amber-500/20">
+                          <span className="text-xs font-black">提示</span>
+                        </div>
+                        <p className="text-slate-500 text-lg font-medium leading-relaxed italic pt-1">{currentItem.prompt}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+
+              {/* Action: Pronunciation - Hidden for motor function */}
+              {!currentItem.isMotorFunction && (
+                <div className="absolute bottom-10 right-10 flex flex-col items-center gap-2">
+                  <button className="w-20 h-20 bg-gradient-to-br from-[#135c4a] to-[#0d4537] text-white rounded-3xl flex items-center justify-center shadow-2xl shadow-[#135c4a]/40 hover:scale-110 active:scale-90 transition-all ring-4 ring-white">
+                    <Volume2 className="w-10 h-10" />
+                  </button>
+                  <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">发音指导</span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right Column: Decisions & AI */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
+          {/* Right Column: Decisions & AI - Hidden for motor function */}
+          {!currentItem.isMotorFunction && (
+            <div className="lg:col-span-4 flex flex-col gap-6">
 
-            {/* Scoring Section */}
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white flex flex-col gap-6 flex-1">
-              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">发音评定</h4>
-              <div className="grid grid-cols-2 gap-4 flex-1">
-                {[
-                  { type: 'pass', label: '正确', symbol: '√', color: 'emerald' },
-                  { type: 'distorted', label: '歪曲', symbol: '⊗', color: 'amber' },
-                  { type: 'omitted', label: '遗漏', symbol: '⊝', color: 'slate' },
-                  { type: 'substituted', label: '替代', icon: 'A', color: 'blue' }
-                ].map((score) => (
-                  <button
-                    key={score.type}
-                    onClick={() => score.type === 'substituted' ? setIsSubstitutionModalOpen(true) : handleResult(score.type as any)}
-                    className={cn(
-                      "group flex flex-col items-center justify-center gap-3 p-4 rounded-[2rem] border-2 transition-all active:scale-95",
-                      testResults[currentStep]?.type === score.type
-                        ? `bg-${score.color}-50 border-${score.color}-500`
-                        : "bg-slate-50 border-transparent hover:border-slate-200"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-12 h-12 rounded-2xl flex items-center justify-center transition-all font-black text-2xl",
-                      testResults[currentStep]?.type === score.type
-                        ? `bg-${score.color}-500 text-white shadow-lg`
-                        : "bg-white text-slate-300 border border-slate-200 group-hover:scale-110"
-                    )}>
-                      {score.type === 'substituted' ? (testResults[currentStep]?.pinyin || 'A') : score.symbol}
+              {/* Scoring Section */}
+              <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white flex flex-col gap-6 flex-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">发音评定</h4>
+                  <div className="relative group/help">
+                    <button className="flex items-center gap-1.5 text-slate-400 hover:text-[#135c4a] transition-colors">
+                      <HelpCircle className="w-4 h-4" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">评定标准</span>
+                    </button>
+
+                    {/* Tooltip Overlay */}
+                    <div className="absolute right-0 top-full mt-3 w-[400px] bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 opacity-0 invisible group-hover/help:opacity-100 group-hover/help:visible transition-all duration-300 z-[100] translate-y-2 group-hover/help:translate-y-0 text-left cursor-default">
+                      <div className="mb-4 pb-2 border-b border-slate-50">
+                        <h5 className="text-sm font-black text-slate-800">构音评定标准说明</h5>
+                      </div>
+
+                      <div className="space-y-5">
+                        {/* Correct */}
+                        <div className="flex gap-3">
+                          <div className="w-6 h-6 rounded bg-emerald-500 flex items-center justify-center shrink-0 text-xs text-white font-bold">√</div>
+                          <div className="space-y-1">
+                            <p className="text-xs font-black text-slate-800">正确 ( √ )</p>
+                            <p className="text-[10px] text-slate-500 leading-relaxed"><span className="font-bold text-slate-700">定义：</span>发音清晰、准确，符合目标音的标准发音。</p>
+                            <p className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded inline-block"><span className="font-bold">示例：</span>目标为声母“b”，患者读“包(bao)”时声母发音完全正确。</p>
+                          </div>
+                        </div>
+
+                        {/* Substituted */}
+                        <div className="flex gap-3">
+                          <div className="w-6 h-6 rounded bg-blue-500 flex items-center justify-center shrink-0 text-xs text-white font-bold">A</div>
+                          <div className="space-y-1">
+                            <p className="text-xs font-black text-slate-800">替代 ( 实发音的拼音 )</p>
+                            <p className="text-[10px] text-slate-500 leading-relaxed"><span className="font-bold text-slate-700">定义：</span>目标音被另一个标准发音所代替。需录入实际音节。</p>
+                            <p className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded inline-block"><span className="font-bold">示例：</span>目标为“p”，患者读成“包(bao)”，记录实发音“b”。</p>
+                          </div>
+                        </div>
+
+                        {/* Omitted */}
+                        <div className="flex gap-3">
+                          <div className="w-6 h-6 rounded bg-slate-400 flex items-center justify-center shrink-0 text-xs text-white font-bold">⊖</div>
+                          <div className="space-y-1">
+                            <p className="text-xs font-black text-slate-800">遗漏 ( ⊖ )</p>
+                            <p className="text-[10px] text-slate-500 leading-relaxed"><span className="font-bold text-slate-700">定义：</span>目标音在词语中完全缺失，没有发出任何声音。</p>
+                            <p className="text-[10px] text-slate-500 bg-slate-50 px-2 py-0.5 rounded inline-block"><span className="font-bold">示例：</span>“河(he)”读成“e”（目标音声母h遗漏）。</p>
+                          </div>
+                        </div>
+
+                        {/* Distorted */}
+                        <div className="flex gap-3">
+                          <div className="w-6 h-6 rounded bg-amber-500 flex items-center justify-center shrink-0 text-xs text-white font-bold">⊗</div>
+                          <div className="space-y-1">
+                            <p className="text-xs font-black text-slate-800">歪曲 ( ⊗ )</p>
+                            <p className="text-[10px] text-slate-500 leading-relaxed"><span className="font-bold text-slate-700">定义：</span>由于音位扭曲，发出不属于拼音系统任何标准音位的声音。</p>
+                            <p className="text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded inline-block"><span className="font-bold">示例：</span>读“书(shu)”时发出了无法标记的、含混的杂音。</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <span className={cn(
-                      "text-sm font-black",
-                      testResults[currentStep]?.type === score.type ? `text-${score.color}-700` : "text-slate-400"
-                    )}>{score.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* AI Recognition Section */}
-            <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden flex flex-col gap-6 flex-1">
-              <div className="flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500",
-                    recordingStatuses[currentStep] === 'recording' ? "bg-red-500 shadow-xl" : "bg-white/10"
-                  )}>
-                    <Mic className={cn("w-6 h-6", recordingStatuses[currentStep] === 'recording' ? "text-white" : "text-emerald-400")} />
                   </div>
-                  <span className="font-black text-sm tracking-widest uppercase">AI 语音识别</span>
                 </div>
-                {recordingStatuses[currentStep] === 'recording' && (
-                  <div className="animate-pulse flex items-center gap-2 px-3 py-1.5 bg-red-500/20 rounded-full ring-1 ring-red-500/30">
-                    <div className="w-2 h-2 rounded-full bg-red-500" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">LIVE</span>
-                  </div>
-                )}
+                <div className="grid grid-cols-2 gap-4 flex-1">
+                  {[
+                    { type: 'pass', label: '正确', symbol: '√', color: 'emerald' },
+                    { type: 'distorted', label: '歪曲', symbol: '⊗', color: 'amber' },
+                    { type: 'omitted', label: '遗漏', symbol: '⊝', color: 'slate' },
+                    { type: 'substituted', label: '替代', icon: 'A', color: 'blue' }
+                  ].map((score) => (
+                    <button
+                      key={score.type}
+                      onClick={() => score.type === 'substituted' ? setIsSubstitutionModalOpen(true) : handleResult(score.type as any)}
+                      className={cn(
+                        "group flex flex-col items-center justify-center gap-3 p-4 rounded-[2rem] border-2 transition-all active:scale-95",
+                        testResults[currentStep]?.type === score.type
+                          ? `bg-${score.color}-50 border-${score.color}-500`
+                          : "bg-slate-50 border-transparent hover:border-slate-200"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-12 h-12 rounded-2xl flex items-center justify-center transition-all font-black text-2xl",
+                        testResults[currentStep]?.type === score.type
+                          ? `bg-${score.color}-500 text-white shadow-lg`
+                          : "bg-white text-slate-300 border border-slate-200 group-hover:scale-110"
+                      )}>
+                        {score.type === 'substituted' ? (testResults[currentStep]?.pinyin || 'A') : score.symbol}
+                      </div>
+                      <span className={cn(
+                        "text-sm font-black",
+                        testResults[currentStep]?.type === score.type ? `text-${score.color}-700` : "text-slate-400"
+                      )}>{score.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="bg-white/5 rounded-3xl p-6 border border-white/5 flex flex-col items-center justify-center flex-1 min-h-[100px]">
-                {recordingStatuses[currentStep] === 'recording' ? (
-                  <div className="flex items-end gap-1.5 h-10">
-                    {[0.2, 0.5, 0.8, 1, 0.7, 0.4, 0.9, 0.6, 0.3].map((v, i) => (
-                      <div key={i} className="w-1.5 bg-emerald-400 rounded-full animate-wave" style={{ height: `${v * 100}%`, animationDelay: `${i * 0.1}s` }} />
-                    ))}
+              {/* AI Recognition Section */}
+              <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden flex flex-col gap-6 flex-1">
+                <div className="flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500",
+                      recordingStatuses[currentStep] === 'recording' ? "bg-red-500 shadow-xl" : "bg-white/10"
+                    )}>
+                      <Mic className={cn("w-6 h-6", recordingStatuses[currentStep] === 'recording' ? "text-white" : "text-emerald-400")} />
+                    </div>
+                    <span className="font-black text-sm tracking-widest uppercase">AI 语音识别</span>
                   </div>
-                ) : recordingStatuses[currentStep] === 'completed' ? (
-                  <div className="flex flex-col items-center gap-3 animate-in zoom-in duration-300">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-400" />
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-black text-emerald-400 uppercase tracking-widest">识别完成</span>
-                      <div className="w-px h-3 bg-white/10" />
+                  {recordingStatuses[currentStep] === 'recording' && (
+                    <div className="animate-pulse flex items-center gap-2 px-3 py-1.5 bg-red-500/20 rounded-full ring-1 ring-red-500/30">
+                      <div className="w-2 h-2 rounded-full bg-red-500" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">LIVE</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-white/5 rounded-3xl p-6 border border-white/5 flex flex-col items-center justify-center flex-1 min-h-[100px]">
+                  {recordingStatuses[currentStep] === 'recording' ? (
+                    <div className="flex items-end gap-1.5 h-10">
+                      {[0.2, 0.5, 0.8, 1, 0.7, 0.4, 0.9, 0.6, 0.3].map((v, i) => (
+                        <div key={i} className="w-1.5 bg-emerald-400 rounded-full animate-wave" style={{ height: `${v * 100}%`, animationDelay: `${i * 0.1}s` }} />
+                      ))}
+                    </div>
+                  ) : recordingStatuses[currentStep] === 'completed' ? (
+                    <div className="flex flex-col items-center gap-3 animate-in zoom-in duration-300">
+                      <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-black text-emerald-400 uppercase tracking-widest">识别完成</span>
+                        <div className="w-px h-3 bg-white/10" />
+                        <button
+                          className="flex items-center gap-2 px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full transition-all group active:scale-90"
+                          title="播放录音"
+                        >
+                          <Play className="w-3 h-3 text-white fill-current group-hover:scale-110 transition-transform" />
+                          <span className="text-[10px] font-bold text-white/80">播放录音</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : <p className="text-xs text-white/40 italic font-medium">使用 AI 语音识别自动评定结果</p>}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 shrink-0">
+                  {(!recordingStatuses[currentStep] || recordingStatuses[currentStep] === 'idle') && (
+                    <button
+                      onClick={() => setRecordingStatuses(prev => ({ ...prev, [currentStep]: 'recording' }))}
+                      className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl transition-all font-black text-sm flex items-center justify-center gap-3 shadow-xl shadow-emerald-500/30 active:scale-95"
+                    >
+                      开始 AI 识别
+                    </button>
+                  )}
+
+                  {recordingStatuses[currentStep] === 'recording' && (
+                    <div className="flex gap-3">
                       <button
-                        className="flex items-center gap-2 px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full transition-all group active:scale-90"
-                        title="播放录音"
+                        onClick={() => {
+                          setRecordingStatuses(prev => ({ ...prev, [currentStep]: 'completed' }));
+                          if (!testResults[currentStep]) {
+                            const randomResult = Math.random() > 0.3 ? 'pass' : 'distorted';
+                            setTestResults(prev => ({ ...prev, [currentStep]: { type: randomResult } }));
+                          }
+                        }}
+                        className="flex-1 py-4 bg-white text-slate-900 rounded-2xl transition-all font-black text-sm flex items-center justify-center gap-2 hover:bg-slate-100 active:scale-95"
                       >
-                        <Play className="w-3 h-3 text-white fill-current group-hover:scale-110 transition-transform" />
-                        <span className="text-[10px] font-bold text-white/80">播放录音</span>
+                        完成录音
+                      </button>
+                      <button
+                        onClick={() => {
+                          const hasPrevResult = testResults[currentStep] !== undefined && testResults[currentStep] !== null;
+                          setRecordingStatuses(prev => ({ ...prev, [currentStep]: hasPrevResult ? 'completed' : 'idle' }));
+                        }}
+                        className="px-6 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all font-black text-sm active:scale-95"
+                      >
+                        取消
                       </button>
                     </div>
-                  </div>
-                ) : <p className="text-xs text-white/40 italic font-medium">使用 AI 语音识别自动评定结果</p>}
-              </div>
+                  )}
 
-              <div className="grid grid-cols-1 gap-3 shrink-0">
-                {(!recordingStatuses[currentStep] || recordingStatuses[currentStep] === 'idle') && (
-                  <button
-                    onClick={() => setRecordingStatuses(prev => ({ ...prev, [currentStep]: 'recording' }))}
-                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl transition-all font-black text-sm flex items-center justify-center gap-3 shadow-xl shadow-emerald-500/30 active:scale-95"
-                  >
-                    开始 AI 识别
-                  </button>
-                )}
-
-                {recordingStatuses[currentStep] === 'recording' && (
-                  <div className="flex gap-3">
+                  {recordingStatuses[currentStep] === 'completed' && (
                     <button
-                      onClick={() => {
-                        setRecordingStatuses(prev => ({ ...prev, [currentStep]: 'completed' }));
-                        if (!testResults[currentStep]) {
-                          const randomResult = Math.random() > 0.3 ? 'pass' : 'distorted';
-                          setTestResults(prev => ({ ...prev, [currentStep]: { type: randomResult } }));
-                        }
-                      }}
-                      className="flex-1 py-4 bg-white text-slate-900 rounded-2xl transition-all font-black text-sm flex items-center justify-center gap-2 hover:bg-slate-100 active:scale-95"
+                      onClick={() => setRecordingStatuses(prev => ({ ...prev, [currentStep]: 'recording' }))}
+                      className="w-full py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all font-black text-sm flex items-center justify-center gap-3 border border-white/5 active:scale-95"
                     >
-                      完成录音
+                      <RotateCcw className="w-4 h-4" /> 重新录制识别
                     </button>
-                    <button
-                      onClick={() => {
-                        const hasPrevResult = testResults[currentStep] !== undefined && testResults[currentStep] !== null;
-                        setRecordingStatuses(prev => ({ ...prev, [currentStep]: hasPrevResult ? 'completed' : 'idle' }));
-                      }}
-                      className="px-6 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all font-black text-sm active:scale-95"
-                    >
-                      取消
-                    </button>
-                  </div>
-                )}
-
-                {recordingStatuses[currentStep] === 'completed' && (
-                  <button
-                    onClick={() => setRecordingStatuses(prev => ({ ...prev, [currentStep]: 'recording' }))}
-                    className="w-full py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all font-black text-sm flex items-center justify-center gap-3 border border-white/5 active:scale-95"
-                  >
-                    <RotateCcw className="w-4 h-4" /> 重新录制识别
-                  </button>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
 
