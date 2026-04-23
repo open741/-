@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Image as ImageIcon, ListTodo, Trash2, Settings, Plus, Search, Download, Trash, Move, Printer, Sparkles, Wand2, RefreshCw, ChevronDown, FilePlus } from 'lucide-react';
+import { LayoutDashboard, Image as ImageIcon, ListTodo, Trash2, Settings, Plus, Search, Download, Trash, Move, Printer, Sparkles, Wand2, RefreshCw, ChevronDown, FilePlus, FileEdit, Eye } from 'lucide-react';
 import { cn } from './lib/utils';
 import GraphicLibrary from './pages/GraphicLibrary';
 import GraphicLibraryV2 from './pages/GraphicLibraryV2';
@@ -10,6 +10,7 @@ import AssessmentHistory from './pages/AssessmentHistory';
 import AiCardGeneration from './pages/AiCardGeneration';
 import StudentArchive from './pages/StudentArchive';
 import AssessmentResult from './pages/AssessmentResult';
+import IepManagement from './pages/IepManagement';
 import { RequirementsDrawer, FloatingRequirementsButton } from './components/RequirementsDrawer';
 import { useState } from 'react';
 
@@ -37,6 +38,7 @@ function Sidebar() {
     { icon: ListTodo, label: '活动库', path: '/activity', match: '/activity' },
     { icon: FilePlus, label: '评估表', path: '/new-assessment', match: '/new-assessment' },
     { icon: LayoutDashboard, label: '学员档案', path: '/student-archive', match: '/student-archive' },
+    { icon: FilePlus, label: '教学计划（IEP）', path: '/iep/create', match: '/iep/create' },
   ];
 
   return (
@@ -47,7 +49,7 @@ function Sidebar() {
         </div>
         <h1 className="text-xl font-bold text-white">茉桔AI教学平台</h1>
       </div>
-      
+
       <nav className="flex-1 px-4 space-y-1 mt-4">
         {navItems.map((item) => (
           <NavLink
@@ -57,7 +59,7 @@ function Sidebar() {
               cn(
                 "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                 location.pathname.startsWith(item.match)
-                  ? "bg-white/20 text-white" 
+                  ? "bg-white/20 text-white"
                   : "text-white/80 hover:bg-white/10 hover:text-white"
               )
             }
@@ -105,7 +107,7 @@ export default function App() {
     <Router>
       <div className="flex h-screen bg-slate-50 overflow-hidden font-sans relative">
         <Sidebar />
-        <div 
+        <div
           className={cn(
             "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out",
             isRequirementsOpen ? "mr-[600px]" : "mr-0"
@@ -124,18 +126,21 @@ export default function App() {
               <Route path="/ai-generation" element={<AiCardGeneration />} />
               <Route path="/student-archive" element={<StudentArchive />} />
               <Route path="/assessment-result" element={<AssessmentResult />} />
+              <Route path="/iep/create" element={<IepManagement mode="create" />} />
+              <Route path="/iep/edit" element={<IepManagement mode="edit" />} />
+              <Route path="/iep/view" element={<IepManagement mode="view" />} />
             </Routes>
           </main>
         </div>
 
-        <RequirementsDrawer 
-          isOpen={isRequirementsOpen} 
-          onClose={() => setIsRequirementsOpen(false)} 
+        <RequirementsDrawer
+          isOpen={isRequirementsOpen}
+          onClose={() => setIsRequirementsOpen(false)}
           title={selectedPrd.title}
           content={selectedPrd.content}
         />
-        
-        <FloatingRequirementsButton 
+
+        <FloatingRequirementsButton
           onSelect={handlePrdSelect}
           isOpen={isRequirementsOpen}
         />
