@@ -22,6 +22,8 @@ const STUDENTS = [
   { id: '2', name: '李华', gender: '女', dob: '2019-02-28', age: '4岁10月' },
 ];
 
+const TEACHERS = ['蒋老师', '王老师', '李老师', '陈老师', '张老师', '胡晓涛', '刘老师', '赵老师'];
+
 const REPORT_TYPES = [
   "孤独症儿童发展能力评估报告",
   "0岁~6岁儿童发育行为评估报告",
@@ -143,18 +145,21 @@ export default function IepManagement({ mode }: IepManagementProps) {
   const [selectedWeekId, setSelectedWeekId] = useState<string | null>(mode === 'view' ? 'W1' : null);
 
   const mockHalfYearPlans = [
-    { id: '1', planNo: 'A260084', prepDate: '2026-04-02', startDate: '2026-04-02', endDate: '2026-04-03', age: '0岁2个月', createdAt: '2026-04-22 15:00:09', status: '进行中' },
+    { id: '1', planNo: 'A260084', prepDate: '2026-04-02', startDate: '2026-04-02', endDate: '2026-04-03', participants: ['蒋老师', '王老师'], implementers: ['李老师'], age: '0岁2个月', createdAt: '2026-04-22 15:00:09', status: '进行中' },
   ];
   const mockMonthPlans = [
-    { id: '1', planNo: 'B260247', month: '2026-03', prepDate: '2026-03-05', startDate: '2026-03-11', endDate: '2026-03-13', age: '0岁2个月', creator: '胡晓涛', createdAt: '2026-03-31 12:46:10', status: '进行中' },
+    { id: '1', planNo: 'B260247', month: '2026-03', halfYearPlanId: '1', prepDate: '2026-03-05', startDate: '2026-03-11', endDate: '2026-03-13', participants: ['胡晓涛'], implementers: ['蒋老师'], age: '0岁2个月', creator: '胡晓涛', createdAt: '2026-03-31 12:46:10', status: '进行中' },
   ];
   const mockWeekPlans = [
     {
       id: 'W1',
       planNo: 'W20260401',
+      monthPlanId: '1',
       prepDate: '2026-04-01',
       startDate: '2026-04-06',
       endDate: '2026-04-12',
+      participants: ['蒋老师'],
+      implementers: ['蒋老师'],
       age: '5岁5月',
       creator: '蒋老师',
       createdAt: '2026-04-01 10:00:00'
@@ -162,9 +167,12 @@ export default function IepManagement({ mode }: IepManagementProps) {
     {
       id: 'W2',
       planNo: 'W20260408',
+      monthPlanId: '1',
       prepDate: '2026-04-08',
       startDate: '2026-04-13',
       endDate: '2026-04-19',
+      participants: ['蒋老师', '胡晓涛'],
+      implementers: ['胡晓涛'],
       age: '5岁5月',
       creator: '蒋老师',
       createdAt: '2026-04-08 14:30:00'
@@ -180,6 +188,25 @@ export default function IepManagement({ mode }: IepManagementProps) {
   const [generateStartDate, setGenerateStartDate] = useState('');
   const [generateEndDate, setGenerateEndDate] = useState('');
   const [generateMonth, setGenerateMonth] = useState('');
+  const [selectedHalfYearForMonth, setSelectedHalfYearForMonth] = useState<string>('');
+  const [monthPrepDate, setMonthPrepDate] = useState(new Date().toISOString().split('T')[0]);
+  const [monthParticipants, setMonthParticipants] = useState<string[]>([]);
+  const [monthImplementers, setMonthImplementers] = useState<string[]>([]);
+  const [isMonthParticipantDropdownOpen, setIsMonthParticipantDropdownOpen] = useState(false);
+  const [isMonthImplementerDropdownOpen, setIsMonthImplementerDropdownOpen] = useState(false);
+  const [isMonthHalfYearDropdownOpen, setIsMonthHalfYearDropdownOpen] = useState(false);
+  const [generatePrepDate, setGeneratePrepDate] = useState(new Date().toISOString().split('T')[0]);
+  const [generateParticipants, setGenerateParticipants] = useState<string[]>([]);
+  const [generateImplementers, setGenerateImplementers] = useState<string[]>([]);
+  const [isParticipantDropdownOpen, setIsParticipantDropdownOpen] = useState(false);
+  const [isImplementerDropdownOpen, setIsImplementerDropdownOpen] = useState(false);
+  const [selectedMonthForWeek, setSelectedMonthForWeek] = useState<string>('');
+  const [weekPrepDate, setWeekPrepDate] = useState(new Date().toISOString().split('T')[0]);
+  const [weekParticipants, setWeekParticipants] = useState<string[]>([]);
+  const [weekImplementers, setWeekImplementers] = useState<string[]>([]);
+  const [isWeekParticipantDropdownOpen, setIsWeekParticipantDropdownOpen] = useState(false);
+  const [isWeekImplementerDropdownOpen, setIsWeekImplementerDropdownOpen] = useState(false);
+  const [isWeekMonthDropdownOpen, setIsWeekMonthDropdownOpen] = useState(false);
   const [generateWeekStart, setGenerateWeekStart] = useState('2026-04-06');
   const [isWeekPickerOpen, setIsWeekPickerOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -241,9 +268,11 @@ export default function IepManagement({ mode }: IepManagementProps) {
       const newPlan = {
         id: String(halfYearPlans.length + 1),
         planNo: `A${Math.floor(100000 + Math.random() * 900000)}`,
-        prepDate: new Date().toISOString().split('T')[0],
+        prepDate: generatePrepDate,
         startDate: generateStartDate,
         endDate: generateEndDate,
+        participants: generateParticipants,
+        implementers: generateImplementers,
         age: selectedStudent?.age || '未知',
         createdAt: new Date().toLocaleString().replace(/\//g, '-'),
         status: '进行中'
@@ -252,13 +281,15 @@ export default function IepManagement({ mode }: IepManagementProps) {
       setHalfYearPlans([newPlan, ...halfYearPlans]);
       setGenerateStartDate('');
       setGenerateEndDate('');
+      setGenerateParticipants([]);
+      setGenerateImplementers([]);
       setIsGenerating(false);
     }, 1500);
   };
 
   const handleGenerateMonthPlan = () => {
-    if (!generateMonth) {
-      showAlert('请选择所属月份');
+    if (!generateMonth || !selectedHalfYearForMonth) {
+      showAlert('请选择所属月份和关联的半年计划');
       return;
     }
 
@@ -269,9 +300,12 @@ export default function IepManagement({ mode }: IepManagementProps) {
         id: String(monthPlans.length + 1),
         planNo: `B${Math.floor(100000 + Math.random() * 900000)}`,
         month: generateMonth,
-        prepDate: new Date().toISOString().split('T')[0],
+        halfYearPlanId: selectedHalfYearForMonth,
+        prepDate: monthPrepDate,
         startDate: `${generateMonth}-01`,
         endDate: `${generateMonth}-28`, // 简化处理
+        participants: monthParticipants,
+        implementers: monthImplementers,
         age: selectedStudent?.age || '未知',
         creator: '胡晓涛',
         createdAt: new Date().toLocaleString().replace(/\//g, '-'),
@@ -280,6 +314,9 @@ export default function IepManagement({ mode }: IepManagementProps) {
 
       setMonthPlans([newPlan, ...monthPlans]);
       setGenerateMonth('');
+      setSelectedHalfYearForMonth('');
+      setMonthParticipants([]);
+      setMonthImplementers([]);
       setIsGenerating(false);
     }, 1500);
   };
@@ -297,6 +334,11 @@ export default function IepManagement({ mode }: IepManagementProps) {
   };
 
   const handleGenerateWeekPlan = () => {
+    if (!generateWeekStart || !selectedMonthForWeek) {
+      showAlert('请选择所属周和关联的月计划');
+      return;
+    }
+
     setIsWeekGenerateModalOpen(false);
     setIsGenerating(true);
     setTimeout(() => {
@@ -311,15 +353,22 @@ export default function IepManagement({ mode }: IepManagementProps) {
       const newPlan = {
         id: String(weekPlans.length + 1),
         planNo: `W${Math.floor(100000 + Math.random() * 900000)}`,
-        prepDate: new Date().toISOString().split('T')[0],
+        monthPlanId: selectedMonthForWeek,
+        prepDate: weekPrepDate,
         startDate: startDateStr,
         endDate: endDateStr,
+        participants: weekParticipants,
+        implementers: weekImplementers,
         age: selectedStudent?.age || '未知',
         creator: '蒋老师',
         createdAt: new Date().toLocaleString().replace(/\//g, '-')
       };
 
       setWeekPlans([newPlan, ...weekPlans]);
+      setGenerateWeekStart('2026-04-06');
+      setSelectedMonthForWeek('');
+      setWeekParticipants([]);
+      setWeekImplementers([]);
       setIsGenerating(false);
     }, 1500);
   };
@@ -1491,7 +1540,7 @@ export default function IepManagement({ mode }: IepManagementProps) {
                               <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest">结束时间</th>
                               <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest">制定计划时年龄</th>
                               <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest">创建时间</th>
-                              <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest text-center">操作</th>
+                              <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest text-center whitespace-nowrap">操作</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-50">
@@ -1504,8 +1553,8 @@ export default function IepManagement({ mode }: IepManagementProps) {
                                 <td className="px-6 py-5 text-slate-500 font-medium">{plan.prepDate}</td>
                                 <td className="px-6 py-5 text-slate-500 font-medium">{plan.startDate}</td>
                                 <td className="px-6 py-5 text-slate-500 font-medium">{plan.endDate}</td>
-                                <td className="px-6 py-5 text-slate-500 font-medium">{plan.age}</td>
-                                <td className="px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-tight">{plan.createdAt}</td>
+                                <td className="px-6 py-5 text-slate-500 font-medium whitespace-nowrap">{plan.age}</td>
+                                <td className="px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-tight whitespace-nowrap">{plan.createdAt}</td>
                                 <td className="px-6 py-5">
                                   <div className="flex items-center justify-center gap-3">
                                     <button className="p-2 text-slate-400 hover:text-[#135c4a] hover:bg-white rounded-lg transition-all shadow-sm hover:shadow-md active:scale-95" title="查看">
@@ -1541,7 +1590,7 @@ export default function IepManagement({ mode }: IepManagementProps) {
                     {/* Generate Modal */}
                     {isGenerateModalOpen && (
                       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-300 px-4">
-                        <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 border border-slate-100">
+                        <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 border border-slate-100">
                           <div className="p-8 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-[#135c4a]/10 rounded-2xl flex items-center justify-center text-[#135c4a]">
@@ -1554,36 +1603,161 @@ export default function IepManagement({ mode }: IepManagementProps) {
                             </button>
                           </div>
 
-                          <div className="p-8 space-y-6">
+                          <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                             <div className="space-y-4">
-                              <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
-                                  开始时间 <span className="text-rose-400">*</span>
-                                </label>
-                                <div className="relative group">
-                                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#135c4a] transition-colors" />
-                                  <input
-                                    type="date"
-                                    value={generateStartDate}
-                                    onChange={(e) => setGenerateStartDate(e.target.value)}
-                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-700 focus:outline-none focus:border-[#135c4a] focus:bg-white focus:ring-4 focus:ring-[#135c4a]/5 transition-all"
-                                  />
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                    开始时间 <span className="text-rose-400">*</span>
+                                  </label>
+                                  <div className="relative group">
+                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#135c4a] transition-colors" />
+                                    <input
+                                      type="date"
+                                      value={generateStartDate}
+                                      onChange={(e) => {
+                                        const start = e.target.value;
+                                        setGenerateStartDate(start);
+                                        if (start) {
+                                          const d = new Date(start);
+                                          d.setMonth(d.getMonth() + 6);
+                                          setGenerateEndDate(d.toISOString().split('T')[0]);
+                                        }
+                                      }}
+                                      className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-700 focus:outline-none focus:border-[#135c4a] focus:bg-white focus:ring-4 focus:ring-[#135c4a]/5 transition-all"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                    结束时间
+                                  </label>
+                                  <div className="relative group">
+                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-200" />
+                                    <input
+                                      type="date"
+                                      value={generateEndDate}
+                                      readOnly
+                                      className="w-full h-14 bg-slate-100/50 border border-slate-100 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-400 cursor-not-allowed outline-none"
+                                    />
+                                  </div>
                                 </div>
                               </div>
 
                               <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
-                                  结束时间 <span className="text-rose-400">*</span>
+                                  制定日期 <span className="text-rose-400">*</span>
                                 </label>
                                 <div className="relative group">
                                   <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#135c4a] transition-colors" />
                                   <input
                                     type="date"
-                                    value={generateEndDate}
-                                    onChange={(e) => setGenerateEndDate(e.target.value)}
+                                    value={generatePrepDate}
+                                    onChange={(e) => setGeneratePrepDate(e.target.value)}
                                     className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-700 focus:outline-none focus:border-[#135c4a] focus:bg-white focus:ring-4 focus:ring-[#135c4a]/5 transition-all"
                                   />
                                 </div>
+                              </div>
+
+                              {/* Participants Multi-select */}
+                              <div className="space-y-2 relative">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                  计划参与者
+                                </label>
+                                <div
+                                  onClick={() => setIsParticipantDropdownOpen(!isParticipantDropdownOpen)}
+                                  className="w-full min-h-[56px] bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-wrap gap-2 cursor-pointer hover:border-[#135c4a]/30 transition-all"
+                                >
+                                  {generateParticipants.length > 0 ? (
+                                    generateParticipants.map(name => (
+                                      <span key={name} className="px-3 py-1 bg-[#135c4a] text-white text-[11px] font-bold rounded-lg flex items-center gap-1">
+                                        {name}
+                                        <Plus className="w-3 h-3 rotate-45" onClick={(e) => {
+                                          e.stopPropagation();
+                                          setGenerateParticipants(prev => prev.filter(t => t !== name));
+                                        }} />
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-slate-400 text-sm py-1 px-2 italic">选择参与老师...</span>
+                                  )}
+                                </div>
+                                {isParticipantDropdownOpen && (
+                                  <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setIsParticipantDropdownOpen(false)} />
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-20 p-3 grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {TEACHERS.map(t => (
+                                        <button
+                                          key={t}
+                                          onClick={() => {
+                                            setGenerateParticipants(prev =>
+                                              prev.includes(t) ? prev.filter(p => p !== t) : [...prev, t]
+                                            );
+                                          }}
+                                          className={cn(
+                                            "px-4 py-2 rounded-xl text-xs font-bold transition-all text-left",
+                                            generateParticipants.includes(t)
+                                              ? "bg-[#135c4a] text-white"
+                                              : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                                          )}
+                                        >
+                                          {t}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+
+                              {/* Implementers Multi-select */}
+                              <div className="space-y-2 relative">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                  实施者
+                                </label>
+                                <div
+                                  onClick={() => setIsImplementerDropdownOpen(!isImplementerDropdownOpen)}
+                                  className="w-full min-h-[56px] bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-wrap gap-2 cursor-pointer hover:border-[#135c4a]/30 transition-all"
+                                >
+                                  {generateImplementers.length > 0 ? (
+                                    generateImplementers.map(name => (
+                                      <span key={name} className="px-3 py-1 bg-[#135c4a] text-white text-[11px] font-bold rounded-lg flex items-center gap-1">
+                                        {name}
+                                        <Plus className="w-3 h-3 rotate-45" onClick={(e) => {
+                                          e.stopPropagation();
+                                          setGenerateImplementers(prev => prev.filter(t => t !== name));
+                                        }} />
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-slate-400 text-sm py-1 px-2 italic">选择实施者...</span>
+                                  )}
+                                </div>
+                                {isImplementerDropdownOpen && (
+                                  <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setIsImplementerDropdownOpen(false)} />
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-20 p-3 grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {TEACHERS.map(t => (
+                                        <button
+                                          key={t}
+                                          onClick={() => {
+                                            setGenerateImplementers(prev =>
+                                              prev.includes(t) ? prev.filter(p => p !== t) : [...prev, t]
+                                            );
+                                          }}
+                                          className={cn(
+                                            "px-4 py-2 rounded-xl text-xs font-bold transition-all text-left",
+                                            generateImplementers.includes(t)
+                                              ? "bg-[#135c4a] text-white"
+                                              : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                                          )}
+                                        >
+                                          {t}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             </div>
 
@@ -1714,7 +1888,7 @@ export default function IepManagement({ mode }: IepManagementProps) {
                     {/* Month Generate Modal */}
                     {isMonthGenerateModalOpen && (
                       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-300 px-4">
-                        <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 border border-slate-100">
+                        <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 border border-slate-100">
                           <div className="p-8 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-[#135c4a]/10 rounded-2xl flex items-center justify-center text-[#135c4a]">
@@ -1727,21 +1901,180 @@ export default function IepManagement({ mode }: IepManagementProps) {
                             </button>
                           </div>
 
-                          <div className="p-8 space-y-6">
+                          <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                             <div className="space-y-4">
-                              <div className="space-y-2">
+                              {/* Half-Year Plan Selector */}
+                              <div className="space-y-2 relative">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
-                                  所属月份 <span className="text-rose-400">*</span>
+                                  依据半年计划 <span className="text-rose-400">*</span>
                                 </label>
-                                <div className="relative group">
-                                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#135c4a] transition-colors" />
-                                  <input
-                                    type="month"
-                                    value={generateMonth}
-                                    onChange={(e) => setGenerateMonth(e.target.value)}
-                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-700 focus:outline-none focus:border-[#135c4a] focus:bg-white focus:ring-4 focus:ring-[#135c4a]/5 transition-all"
-                                  />
+                                <div
+                                  onClick={() => setIsMonthHalfYearDropdownOpen(!isMonthHalfYearDropdownOpen)}
+                                  className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-4 flex items-center justify-between cursor-pointer hover:border-[#135c4a]/30 transition-all"
+                                >
+                                  <span className={cn("text-sm font-bold", selectedHalfYearForMonth ? "text-slate-700" : "text-slate-400")}>
+                                    {selectedHalfYearForMonth ? halfYearPlans.find(p => p.id === selectedHalfYearForMonth)?.planNo : "选择关联的半年计划..."}
+                                  </span>
+                                  <ChevronDown className={cn("w-4 h-4 text-slate-300 transition-transform", isMonthHalfYearDropdownOpen && "rotate-180")} />
                                 </div>
+                                {isMonthHalfYearDropdownOpen && (
+                                  <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setIsMonthHalfYearDropdownOpen(false)} />
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-20 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {halfYearPlans.map(p => (
+                                        <div
+                                          key={p.id}
+                                          onClick={() => {
+                                            setSelectedHalfYearForMonth(p.id);
+                                            setIsMonthHalfYearDropdownOpen(false);
+                                          }}
+                                          className={cn(
+                                            "px-4 py-3 cursor-pointer transition-all flex items-center justify-between hover:bg-slate-50",
+                                            selectedHalfYearForMonth === p.id ? "bg-[#135c4a]/5 text-[#135c4a]" : "text-slate-600"
+                                          )}
+                                        >
+                                          <div className="flex flex-col">
+                                            <span className="font-bold text-sm">{p.planNo}</span>
+                                            <span className="text-[10px] opacity-60">{p.startDate} 至 {p.endDate}</span>
+                                          </div>
+                                          {selectedHalfYearForMonth === p.id && <CheckCircle2 className="w-4 h-4" />}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                    所属月份 <span className="text-rose-400">*</span>
+                                  </label>
+                                  <div className="relative group">
+                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#135c4a] transition-colors" />
+                                    <input
+                                      type="month"
+                                      value={generateMonth}
+                                      onChange={(e) => setGenerateMonth(e.target.value)}
+                                      className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-700 focus:outline-none focus:border-[#135c4a] focus:bg-white focus:ring-4 focus:ring-[#135c4a]/5 transition-all"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                    制定日期 <span className="text-rose-400">*</span>
+                                  </label>
+                                  <div className="relative group">
+                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#135c4a] transition-colors" />
+                                    <input
+                                      type="date"
+                                      value={monthPrepDate}
+                                      onChange={(e) => setMonthPrepDate(e.target.value)}
+                                      className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-700 focus:outline-none focus:border-[#135c4a] focus:bg-white focus:ring-4 focus:ring-[#135c4a]/5 transition-all"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Participants Multi-select */}
+                              <div className="space-y-2 relative">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                  计划参与者
+                                </label>
+                                <div
+                                  onClick={() => setIsMonthParticipantDropdownOpen(!isMonthParticipantDropdownOpen)}
+                                  className="w-full min-h-[56px] bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-wrap gap-2 cursor-pointer hover:border-[#135c4a]/30 transition-all"
+                                >
+                                  {monthParticipants.length > 0 ? (
+                                    monthParticipants.map(name => (
+                                      <span key={name} className="px-3 py-1 bg-[#135c4a] text-white text-[11px] font-bold rounded-lg flex items-center gap-1">
+                                        {name}
+                                        <Plus className="w-3 h-3 rotate-45" onClick={(e) => {
+                                          e.stopPropagation();
+                                          setMonthParticipants(prev => prev.filter(t => t !== name));
+                                        }} />
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-slate-400 text-sm py-1 px-2 italic">选择参与老师...</span>
+                                  )}
+                                </div>
+                                {isMonthParticipantDropdownOpen && (
+                                  <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setIsMonthParticipantDropdownOpen(false)} />
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-20 p-3 grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {TEACHERS.map(t => (
+                                        <button
+                                          key={t}
+                                          onClick={() => {
+                                            setMonthParticipants(prev =>
+                                              prev.includes(t) ? prev.filter(p => p !== t) : [...prev, t]
+                                            );
+                                          }}
+                                          className={cn(
+                                            "px-4 py-2 rounded-xl text-xs font-bold transition-all text-left",
+                                            monthParticipants.includes(t)
+                                              ? "bg-[#135c4a] text-white"
+                                              : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                                          )}
+                                        >
+                                          {t}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+
+                              {/* Implementers Multi-select */}
+                              <div className="space-y-2 relative">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                  实施者
+                                </label>
+                                <div
+                                  onClick={() => setIsMonthImplementerDropdownOpen(!isMonthImplementerDropdownOpen)}
+                                  className="w-full min-h-[56px] bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-wrap gap-2 cursor-pointer hover:border-[#135c4a]/30 transition-all"
+                                >
+                                  {monthImplementers.length > 0 ? (
+                                    monthImplementers.map(name => (
+                                      <span key={name} className="px-3 py-1 bg-[#135c4a] text-white text-[11px] font-bold rounded-lg flex items-center gap-1">
+                                        {name}
+                                        <Plus className="w-3 h-3 rotate-45" onClick={(e) => {
+                                          e.stopPropagation();
+                                          setMonthImplementers(prev => prev.filter(t => t !== name));
+                                        }} />
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-slate-400 text-sm py-1 px-2 italic">选择实施者...</span>
+                                  )}
+                                </div>
+                                {isMonthImplementerDropdownOpen && (
+                                  <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setIsMonthImplementerDropdownOpen(false)} />
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-20 p-3 grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {TEACHERS.map(t => (
+                                        <button
+                                          key={t}
+                                          onClick={() => {
+                                            setMonthImplementers(prev =>
+                                              prev.includes(t) ? prev.filter(p => p !== t) : [...prev, t]
+                                            );
+                                          }}
+                                          className={cn(
+                                            "px-4 py-2 rounded-xl text-xs font-bold transition-all text-left",
+                                            monthImplementers.includes(t)
+                                              ? "bg-[#135c4a] text-white"
+                                              : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                                          )}
+                                        >
+                                          {t}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             </div>
 
@@ -1874,7 +2207,7 @@ export default function IepManagement({ mode }: IepManagementProps) {
                     {/* Week Generate Modal */}
                     {isWeekGenerateModalOpen && (
                       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-300 px-4">
-                        <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 border border-slate-100">
+                        <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 border border-slate-100">
                           <div className="p-8 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-[#135c4a]/10 rounded-2xl flex items-center justify-center text-[#135c4a]">
@@ -1887,96 +2220,246 @@ export default function IepManagement({ mode }: IepManagementProps) {
                             </button>
                           </div>
 
-                          <div className="p-8 space-y-6 overflow-visible">
+                          <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                             <div className="space-y-4">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
-                                选择计划周期 <span className="text-rose-400">*</span>
-                              </label>
-
-                              <div className="relative">
-                                {/* The Clickable Input Field */}
-                                <button
-                                  onClick={() => setIsWeekPickerOpen(!isWeekPickerOpen)}
-                                  className={cn(
-                                    "w-full h-14 bg-white border rounded-2xl px-5 flex items-center gap-3 transition-all",
-                                    isWeekPickerOpen ? "border-[#135c4a] ring-4 ring-[#135c4a]/5" : "border-slate-100 hover:border-slate-200"
-                                  )}
+                              {/* Month Plan Selector */}
+                              <div className="space-y-2 relative">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                  依据月计划 <span className="text-rose-400">*</span>
+                                </label>
+                                <div
+                                  onClick={() => setIsWeekMonthDropdownOpen(!isWeekMonthDropdownOpen)}
+                                  className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-4 flex items-center justify-between cursor-pointer hover:border-[#135c4a]/30 transition-all"
                                 >
-                                  <Calendar className={cn("w-5 h-5 transition-colors", isWeekPickerOpen ? "text-[#135c4a]" : "text-slate-300")} />
-                                  <span className={cn("text-sm font-bold", generateWeekStart ? "text-slate-700" : "text-slate-400")}>
-                                    {generateWeekStart ? `${generateWeekStart} ~ 2026-04-12` : '选择一周'}
+                                  <span className={cn("text-sm font-bold", selectedMonthForWeek ? "text-slate-700" : "text-slate-400")}>
+                                    {selectedMonthForWeek ? monthPlans.find(p => p.id === selectedMonthForWeek)?.planNo : "选择关联的月计划..."}
                                   </span>
-                                  <ChevronDown className={cn("w-4 h-4 ml-auto text-slate-300 transition-transform duration-300", isWeekPickerOpen && "rotate-180")} />
-                                </button>
-
-                                {/* The Popover Calendar */}
-                                {isWeekPickerOpen && (
-                                  <div className="absolute top-full left-0 right-0 mt-3 z-[110] bg-white border border-slate-100 rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 origin-top">
-                                    {/* Arrow for popover */}
-                                    <div className="absolute -top-1.5 left-10 w-3 h-3 bg-white border-t border-l border-slate-100 rotate-45" />
-
-                                    <div className="relative z-10">
-                                      <div className="flex items-center justify-between mb-6">
-                                        <div className="flex gap-1">
-                                          <button className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-300 transition-colors"><ChevronsLeft className="w-4 h-4" /></button>
-                                          <button className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-300 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+                                  <ChevronDown className={cn("w-4 h-4 text-slate-300 transition-transform", isWeekMonthDropdownOpen && "rotate-180")} />
+                                </div>
+                                {isWeekMonthDropdownOpen && (
+                                  <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setIsWeekMonthDropdownOpen(false)} />
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-20 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {monthPlans.map(p => (
+                                        <div
+                                          key={p.id}
+                                          onClick={() => {
+                                            setSelectedMonthForWeek(p.id);
+                                            setIsWeekMonthDropdownOpen(false);
+                                          }}
+                                          className={cn(
+                                            "px-4 py-3 cursor-pointer transition-all flex items-center justify-between hover:bg-slate-50",
+                                            selectedMonthForWeek === p.id ? "bg-[#135c4a]/5 text-[#135c4a]" : "text-slate-600"
+                                          )}
+                                        >
+                                          <div className="flex flex-col">
+                                            <span className="font-bold text-sm">{p.planNo}</span>
+                                            <span className="text-[10px] opacity-60">月份：{p.month}</span>
+                                          </div>
+                                          {selectedMonthForWeek === p.id && <CheckCircle2 className="w-4 h-4" />}
                                         </div>
-                                        <span className="text-sm font-bold text-slate-700">2026年 4月</span>
-                                        <div className="flex gap-1">
-                                          <button className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-300 transition-colors"><ChevronRight className="w-4 h-4" /></button>
-                                          <button className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-300 transition-colors"><ChevronsRight className="w-4 h-4" /></button>
-                                        </div>
-                                      </div>
-
-                                      <div className="grid grid-cols-7 gap-y-1 text-center">
-                                        {['一', '二', '三', '四', '五', '六', '日'].map(d => (
-                                          <span key={d} className="text-[10px] font-black text-slate-300 mb-4">{d}</span>
-                                        ))}
-
-                                        {[30, 31].map(d => <span key={`prev-${d}`} className="text-xs text-slate-200 py-2.5">{d}</span>)}
-                                        {[1, 2, 3, 4, 5].map(d => <span key={`curr-start-${d}`} className="text-xs text-slate-400 py-2.5">{d}</span>)}
-
-                                        {[6, 7, 8, 9, 10, 11, 12].map((d, i) => (
-                                          <button
-                                            key={`selected-${d}`}
-                                            onClick={() => {
-                                              setGenerateWeekStart(`2026-04-06`);
-                                              setIsWeekPickerOpen(false);
-                                            }}
-                                            className={cn(
-                                              "text-xs font-bold py-2.5 transition-all relative z-10",
-                                              "bg-slate-50 text-[#135c4a]",
-                                              i === 0 && "rounded-l-2xl",
-                                              i === 6 && "rounded-r-2xl"
-                                            )}
-                                          >
-                                            {d}
-                                          </button>
-                                        ))}
-
-                                        {[13, 14, 15, 16, 17, 18, 19, 20, 21, 22].map(d => (
-                                          <button key={`day-${d}`} className="text-xs font-medium text-slate-600 py-2.5 hover:bg-slate-50 rounded-2xl transition-all">{d}</button>
-                                        ))}
-
-                                        <button className="text-xs font-black text-[#135c4a] py-2.5 hover:bg-slate-50 rounded-2xl transition-all relative">
-                                          23
-                                          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#135c4a] rounded-full" />
-                                        </button>
-
-                                        {[24, 25, 26, 27, 28, 29, 30].map(d => (
-                                          <button key={`day-${d}`} className="text-xs font-medium text-slate-600 py-2.5 hover:bg-slate-50 rounded-2xl transition-all">{d}</button>
-                                        ))}
-
-                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => <span key={`next-${d}`} className="text-xs text-slate-200 py-2.5">{d}</span>)}
-                                      </div>
+                                      ))}
                                     </div>
+                                  </>
+                                )}
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                    所属周 <span className="text-rose-400">*</span>
+                                  </label>
+                                  <div className="relative">
+                                    <button
+                                      onClick={() => setIsWeekPickerOpen(!isWeekPickerOpen)}
+                                      className={cn(
+                                        "w-full h-14 bg-slate-50 border rounded-2xl px-5 flex items-center gap-3 transition-all",
+                                        isWeekPickerOpen ? "border-[#135c4a] ring-4 ring-[#135c4a]/5" : "border-slate-100 hover:border-slate-200"
+                                      )}
+                                    >
+                                      <Calendar className={cn("w-5 h-5 transition-colors", isWeekPickerOpen ? "text-[#135c4a]" : "text-slate-300")} />
+                                      <span className={cn("text-sm font-bold", generateWeekStart ? "text-slate-700" : "text-slate-400")}>
+                                        {generateWeekStart ? `${generateWeekStart} ~ 2026-04-12` : '选择一周'}
+                                      </span>
+                                      <ChevronDown className={cn("w-4 h-4 ml-auto text-slate-300 transition-transform duration-300", isWeekPickerOpen && "rotate-180")} />
+                                    </button>
+
+                                    {/* The Popover Calendar */}
+                                    {isWeekPickerOpen && (
+                                      <div className="absolute top-full left-0 right-0 mt-3 z-[110] bg-white border border-slate-100 rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 origin-top">
+                                        <div className="absolute -top-1.5 left-10 w-3 h-3 bg-white border-t border-l border-slate-100 rotate-45" />
+                                        <div className="relative z-10">
+                                          <div className="flex items-center justify-between mb-6">
+                                            <div className="flex gap-1">
+                                              <button className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-300 transition-colors"><ChevronsLeft className="w-4 h-4" /></button>
+                                              <button className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-300 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+                                            </div>
+                                            <span className="text-sm font-bold text-slate-700">2026年 4月</span>
+                                            <div className="flex gap-1">
+                                              <button className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-300 transition-colors"><ChevronRight className="w-4 h-4" /></button>
+                                              <button className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-300 transition-colors"><ChevronsRight className="w-4 h-4" /></button>
+                                            </div>
+                                          </div>
+                                          <div className="grid grid-cols-7 gap-y-1 text-center">
+                                            {['一', '二', '三', '四', '五', '六', '日'].map(d => (
+                                              <span key={d} className="text-[10px] font-black text-slate-300 mb-4">{d}</span>
+                                            ))}
+                                            {[30, 31].map(d => <span key={`prev-${d}`} className="text-xs text-slate-200 py-2.5">{d}</span>)}
+                                            {[1, 2, 3, 4, 5].map(d => <span key={`curr-start-${d}`} className="text-xs text-slate-400 py-2.5">{d}</span>)}
+                                            {[6, 7, 8, 9, 10, 11, 12].map((d, i) => (
+                                              <button
+                                                key={`selected-${d}`}
+                                                onClick={() => {
+                                                  setGenerateWeekStart(`2026-04-06`);
+                                                  setIsWeekPickerOpen(false);
+                                                }}
+                                                className={cn(
+                                                  "text-xs font-bold py-2.5 transition-all relative z-10",
+                                                  "bg-slate-50 text-[#135c4a]",
+                                                  i === 0 && "rounded-l-2xl",
+                                                  i === 6 && "rounded-r-2xl"
+                                                )}
+                                              >
+                                                {d}
+                                              </button>
+                                            ))}
+                                            {[13, 14, 15, 16, 17, 18, 19, 20, 21, 22].map(d => (
+                                              <button key={`day-${d}`} className="text-xs font-medium text-slate-600 py-2.5 hover:bg-slate-50 rounded-2xl transition-all">{d}</button>
+                                            ))}
+                                            <button className="text-xs font-black text-[#135c4a] py-2.5 hover:bg-slate-50 rounded-2xl transition-all relative">
+                                              23
+                                              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#135c4a] rounded-full" />
+                                            </button>
+                                            {[24, 25, 26, 27, 28, 29, 30].map(d => (
+                                              <button key={`day-${d}`} className="text-xs font-medium text-slate-600 py-2.5 hover:bg-slate-50 rounded-2xl transition-all">{d}</button>
+                                            ))}
+                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => <span key={`next-${d}`} className="text-xs text-slate-200 py-2.5">{d}</span>)}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                    制定日期 <span className="text-rose-400">*</span>
+                                  </label>
+                                  <div className="relative group">
+                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#135c4a] transition-colors" />
+                                    <input
+                                      type="date"
+                                      value={weekPrepDate}
+                                      onChange={(e) => setWeekPrepDate(e.target.value)}
+                                      className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-700 focus:outline-none focus:border-[#135c4a] focus:bg-white focus:ring-4 focus:ring-[#135c4a]/5 transition-all"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Participants Multi-select */}
+                              <div className="space-y-2 relative">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                  计划参与者
+                                </label>
+                                <div
+                                  onClick={() => setIsWeekParticipantDropdownOpen(!isWeekParticipantDropdownOpen)}
+                                  className="w-full min-h-[56px] bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-wrap gap-2 cursor-pointer hover:border-[#135c4a]/30 transition-all"
+                                >
+                                  {weekParticipants.length > 0 ? (
+                                    weekParticipants.map(name => (
+                                      <span key={name} className="px-3 py-1 bg-[#135c4a] text-white text-[11px] font-bold rounded-lg flex items-center gap-1">
+                                        {name}
+                                        <Plus className="w-3 h-3 rotate-45" onClick={(e) => {
+                                          e.stopPropagation();
+                                          setWeekParticipants(prev => prev.filter(t => t !== name));
+                                        }} />
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-slate-400 text-sm py-1 px-2 italic">选择参与老师...</span>
+                                  )}
+                                </div>
+                                {isWeekParticipantDropdownOpen && (
+                                  <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setIsWeekParticipantDropdownOpen(false)} />
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-20 p-3 grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {TEACHERS.map(t => (
+                                        <button
+                                          key={t}
+                                          onClick={() => {
+                                            setWeekParticipants(prev =>
+                                              prev.includes(t) ? prev.filter(p => p !== t) : [...prev, t]
+                                            );
+                                          }}
+                                          className={cn(
+                                            "px-4 py-2 rounded-xl text-xs font-bold transition-all text-left",
+                                            weekParticipants.includes(t)
+                                              ? "bg-[#135c4a] text-white"
+                                              : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                                          )}
+                                        >
+                                          {t}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+
+                              {/* Implementers Multi-select */}
+                              <div className="space-y-2 relative">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                  实施者
+                                </label>
+                                <div
+                                  onClick={() => setIsWeekImplementerDropdownOpen(!isWeekImplementerDropdownOpen)}
+                                  className="w-full min-h-[56px] bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-wrap gap-2 cursor-pointer hover:border-[#135c4a]/30 transition-all"
+                                >
+                                  {weekImplementers.length > 0 ? (
+                                    weekImplementers.map(name => (
+                                      <span key={name} className="px-3 py-1 bg-[#135c4a] text-white text-[11px] font-bold rounded-lg flex items-center gap-1">
+                                        {name}
+                                        <Plus className="w-3 h-3 rotate-45" onClick={(e) => {
+                                          e.stopPropagation();
+                                          setWeekImplementers(prev => prev.filter(t => t !== name));
+                                        }} />
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-slate-400 text-sm py-1 px-2 italic">选择实施者...</span>
+                                  )}
+                                </div>
+                                {isWeekImplementerDropdownOpen && (
+                                  <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setIsWeekImplementerDropdownOpen(false)} />
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-20 p-3 grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {TEACHERS.map(t => (
+                                        <button
+                                          key={t}
+                                          onClick={() => {
+                                            setWeekImplementers(prev =>
+                                              prev.includes(t) ? prev.filter(p => p !== t) : [...prev, t]
+                                            );
+                                          }}
+                                          className={cn(
+                                            "px-4 py-2 rounded-xl text-xs font-bold transition-all text-left",
+                                            weekImplementers.includes(t)
+                                              ? "bg-[#135c4a] text-white"
+                                              : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                                          )}
+                                        >
+                                          {t}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </>
                                 )}
                               </div>
                             </div>
 
                             <p className="text-xs text-slate-400 italic bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed">
-                              系统将基于月度康复计划，自动生成具体到每一天的周度训练课表。
+                              系统将基于月度康复计划，自动生成具体到每一天的周计划。
                             </p>
                           </div>
 
