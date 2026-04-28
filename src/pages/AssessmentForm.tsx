@@ -419,12 +419,20 @@ export default function AssessmentForm() {
                         {item.isMotorFunction ? "构音运动功能主观评估" : item.id}
                       </span>
                       {result && (
-                        <span className="text-[10px] opacity-90 leading-none">
-                          {result.type === 'pass' && '√'}
-                          {result.type === 'distorted' && '⊗'}
-                          {result.type === 'omitted' && '⊝'}
-                          {result.type === 'substituted' && (result.pinyin || 'A')}
-                        </span>
+                        <div className={cn(
+                          "flex items-center justify-center leading-none",
+                          result.type === 'substituted' && result.pinyin?.length > 2 ? "px-1.5 py-0.5 bg-white/20 rounded-full scale-90" : ""
+                        )}>
+                          <span className={cn(
+                            "font-bold",
+                            result.type === 'substituted' && result.pinyin?.length > 3 ? "text-[8px]" : "text-[10px]"
+                          )}>
+                            {result.type === 'pass' && '√'}
+                            {result.type === 'distorted' && '⊗'}
+                            {result.type === 'omitted' && '⊝'}
+                            {result.type === 'substituted' && (result.pinyin || 'A')}
+                          </span>
+                        </div>
                       )}
                     </button>
                   );
@@ -887,12 +895,26 @@ export default function AssessmentForm() {
                       )}
                     >
                       <div className={cn(
-                        "w-12 h-12 rounded-2xl flex items-center justify-center transition-all font-black text-2xl",
+                        "transition-all font-black flex items-center justify-center shadow-inner",
+                        score.type === 'substituted' && testResults[currentStep]?.pinyin?.length > 1
+                          ? "px-3 min-w-[3rem] h-12 rounded-full"
+                          : "w-12 h-12 rounded-2xl",
                         testResults[currentStep]?.type === score.type
                           ? `bg-${score.color}-500 text-white shadow-lg`
                           : "bg-white text-slate-300 border border-slate-200 group-hover:scale-110"
                       )}>
-                        {score.type === 'substituted' ? (testResults[currentStep]?.pinyin || 'A') : score.symbol}
+                        {score.type === 'substituted' ? (
+                          <span className={cn(
+                            "leading-none tracking-tight",
+                            (testResults[currentStep]?.pinyin?.length || 0) > 3 ? "text-sm" : 
+                            (testResults[currentStep]?.pinyin?.length || 0) > 2 ? "text-base" : 
+                            "text-2xl"
+                          )}>
+                            {testResults[currentStep]?.pinyin || 'A'}
+                          </span>
+                        ) : (
+                          <span className="text-2xl leading-none">{score.symbol}</span>
+                        )}
                       </div>
                       <span className={cn(
                         "text-sm font-black",

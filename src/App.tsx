@@ -79,7 +79,7 @@ function Topbar() {
     <header className="h-[72px] bg-[#135c4a] flex items-center justify-end px-8 text-white shrink-0">
       <div className="flex items-center gap-10">
         <div className="flex items-center gap-2 cursor-pointer hover:text-white/80 transition-colors">
-          <span className="text-[17px] font-normal tracking-wide">仁怀市特殊教育学校-仁怀特校</span>
+          <span className="text-[17px] font-normal tracking-wide">某某学校-某某校区</span>
           <ChevronDown className="w-5 h-5 opacity-60 stroke-[1.2]" />
         </div>
         <div className="flex items-center gap-4 cursor-pointer">
@@ -87,7 +87,7 @@ function Topbar() {
             <div className="w-[18px] h-[18px] rounded-full bg-[#A3A3A3] absolute top-[9px]"></div>
             <div className="w-[32px] h-[16px] rounded-t-[16px] bg-[#A3A3A3] absolute bottom-0"></div>
           </div>
-          <span className="text-[17px] font-normal tracking-wide">蒋永亮</span>
+          <span className="text-[17px] font-normal tracking-wide">某某老师</span>
         </div>
       </div>
     </header>

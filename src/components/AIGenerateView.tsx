@@ -61,7 +61,7 @@ export default function AIGenerateView() {
       isGroupImage,
       chineseText,
       englishText,
-      creator: '蒋永亮',
+      creator: '某某老师',
     });
     
     setTimeout(() => {
