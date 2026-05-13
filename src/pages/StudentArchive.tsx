@@ -18,7 +18,7 @@ const mockRecordDetails: AssessmentRecord[] = [
     id: '1',
     order: 1,
     code: 'TBL260324',
-    name: '0 岁～6 岁儿童发育行为评估量表',
+    name: '01 岁～6 岁儿童发育行为评估量表',
     method: '儿心量表-II',
     age: '0岁1个月',
     evaluator: '李林杰'
@@ -52,7 +52,7 @@ export default function StudentArchive() {
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
       <div className="h-14 border-b border-slate-100 flex items-center px-6 gap-4">
-        <button 
+        <button
           onClick={() => navigate(-1)}
           className="p-1 hover:bg-slate-50 rounded-lg transition-colors group"
         >
@@ -68,18 +68,18 @@ export default function StudentArchive() {
             <div className="relative mb-4">
               <div className="w-24 h-24 bg-slate-200 rounded-full overflow-hidden flex items-center justify-center border-4 border-white shadow-sm">
                 <div className="w-16 h-16 bg-black rounded-full relative flex items-center justify-center overflow-hidden">
-                   <div className="absolute top-2 w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                      <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                        <div className="w-6 h-2 bg-white rounded-full"></div>
-                      </div>
-                   </div>
+                  <div className="absolute top-2 w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+                      <div className="w-6 h-2 bg-white rounded-full"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <button className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-md border border-slate-100">
                 <ImageIcon className="w-4 h-4 text-emerald-500" />
               </button>
             </div>
-            
+
             <div className="text-center space-y-1">
               <div className="text-slate-500 text-sm">姓名：<span className="text-slate-800 font-medium ml-1">b111</span></div>
               <div className="text-slate-500 text-sm">性别：<span className="text-slate-800 font-medium ml-1">女</span></div>
@@ -95,8 +95,8 @@ export default function StudentArchive() {
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
                   "w-full flex items-center gap-3 px-6 py-3.5 text-sm font-bold rounded-lg transition-all",
-                  activeTab === tab.id 
-                    ? "text-[#135c4a] bg-emerald-50/50" 
+                  activeTab === tab.id
+                    ? "text-[#135c4a] bg-emerald-50/50"
                     : "text-slate-500 hover:bg-slate-50"
                 )}
               >
@@ -114,8 +114,8 @@ export default function StudentArchive() {
               <div className="flex items-center gap-3 flex-1 min-w-[300px]">
                 <div className="relative flex-1 max-w-sm">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input 
-                    placeholder="请输入关键词" 
+                  <input
+                    placeholder="请输入关键词"
                     className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-[#135c4a] transition-all"
                   />
                 </div>
@@ -131,7 +131,7 @@ export default function StudentArchive() {
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={() => navigate('/new-assessment')}
                 className="flex items-center gap-2 px-4 py-2 bg-[#135c4a] text-white rounded-lg hover:bg-[#135c4a]/90 transition-colors shadow-sm font-medium text-sm"
               >
@@ -202,18 +202,18 @@ export default function StudentArchive() {
 // Re-using ImageIcon from App.tsx/Lucide
 function ImageIcon({ className }: { className?: string }) {
   return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24" height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className={className}
     >
-      <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+      <rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
     </svg>
   );
 }
