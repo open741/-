@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Image as ImageIcon, ListTodo, Trash2, Settings, Plus, Search, Download, Trash, Move, Printer, Sparkles, Wand2, RefreshCw, ChevronDown, FilePlus, FileEdit, Eye, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Image as ImageIcon, ListTodo, Trash2, Settings, Plus, Search, Download, Trash, Move, Printer, Sparkles, Wand2, RefreshCw, ChevronDown, FilePlus, FileEdit, Eye, ClipboardList, Gamepad2 } from 'lucide-react';
 import { cn } from './lib/utils';
 import GraphicLibrary from './pages/GraphicLibrary';
 import GraphicLibraryV2 from './pages/GraphicLibraryV2';
@@ -12,6 +12,7 @@ import StudentArchive from './pages/StudentArchive';
 import AssessmentResult from './pages/AssessmentResult';
 import IepManagement from './pages/IepManagement';
 import ComprehensiveReport from './pages/ComprehensiveReport';
+import RehabilitationTraining from './pages/RehabilitationTraining';
 import { RequirementsDrawer, FloatingRequirementsButton } from './components/RequirementsDrawer';
 import { useState } from 'react';
 
@@ -41,6 +42,7 @@ function Sidebar() {
     { icon: LayoutDashboard, label: '学员档案', path: '/student-archive', match: '/student-archive' },
     { icon: FilePlus, label: '教学计划（IEP）', path: '/iep/create', match: '/iep/create' },
     { icon: ClipboardList, label: '评估综合分析报告', path: '/comprehensive-report', match: '/comprehensive-report' },
+    { icon: Gamepad2, label: '康复训练中心', path: '/rehabilitation', match: '/rehabilitation' },
   ];
 
   return (
@@ -132,6 +134,7 @@ export default function App() {
               <Route path="/iep/edit" element={<IepManagement mode="edit" />} />
               <Route path="/iep/view" element={<IepManagement mode="view" />} />
               <Route path="/comprehensive-report" element={<ComprehensiveReport />} />
+              <Route path="/rehabilitation" element={<RehabilitationTraining />} />
             </Routes>
           </main>
         </div>
